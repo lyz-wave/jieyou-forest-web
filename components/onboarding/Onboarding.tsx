@@ -86,19 +86,22 @@ export function Onboarding({ onEnter }: { onEnter?: () => void }): ReactElement 
             <div className="flex max-h-[calc(100dvh-112px)] flex-col">
               <h2 id="onboarding-title" className="text-2xl">今天想先找谁玩？</h2>
               <p className="mt-2 text-sm leading-6 text-ink-soft">{nickname.trim()}，选一位同行伙伴吧。其他朋友也都在等你。</p>
-              <fieldset className="mt-4 grid min-h-0 shrink grid-cols-2 gap-2 overflow-y-auto p-1 sm:grid-cols-3" disabled={saving}>
-                <legend className="sr-only">选择你的伙伴</legend>
-                {ANIMAL_CAST.map((animal) => (
-                  <label key={animal.id} className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-3 transition-colors ${companion === animal.id ? "border-moss bg-moss/10" : "border-bark/10 bg-cream-deep/35"}`}>
-                    <input type="radio" name="companion" value={animal.id} checked={companion === animal.id}
-                      onChange={() => setCompanion(animal.id)} className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" aria-label={`${animal.name}，${animal.mindset}，${animal.game?.name}`} />
-                    <span className="absolute inset-0 rounded-2xl peer-focus-visible:outline-2 peer-focus-visible:outline-dashed peer-focus-visible:outline-vermilion" />
-                    <span className="flex items-center justify-between gap-2"><span className="text-lg">{animal.emoji} {animal.name}</span><span aria-hidden className="text-moss">{companion === animal.id ? "✓" : ""}</span></span>
-                    <span className="mt-1 text-xs leading-5 text-ink-soft">{animal.summary}</span>
-                    <span className="mt-2 text-xs text-bark">一起玩 · {animal.game?.name}</span>
-                  </label>
-                ))}
-              </fieldset>
+              {/* 滚动放在外层 div：fieldset 作滚动容器时浏览器不裁剪内容，纸卡会被内容撑出屏幕 */}
+              <div className="mt-4 min-h-0 shrink overflow-y-auto p-1">
+                <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-3" disabled={saving}>
+                  <legend className="sr-only">选择你的伙伴</legend>
+                  {ANIMAL_CAST.map((animal) => (
+                    <label key={animal.id} className={`relative flex cursor-pointer flex-col rounded-2xl border-2 p-3 transition-colors ${companion === animal.id ? "border-moss bg-moss/10" : "border-bark/10 bg-cream-deep/35"}`}>
+                      <input type="radio" name="companion" value={animal.id} checked={companion === animal.id}
+                        onChange={() => setCompanion(animal.id)} className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" aria-label={`${animal.name}，${animal.mindset}，${animal.game?.name}`} />
+                      <span className="absolute inset-0 rounded-2xl peer-focus-visible:outline-2 peer-focus-visible:outline-dashed peer-focus-visible:outline-vermilion" />
+                      <span className="flex items-center justify-between gap-2"><span className="text-lg">{animal.emoji} {animal.name}</span><span aria-hidden className="text-moss">{companion === animal.id ? "✓" : ""}</span></span>
+                      <span className="mt-1 text-xs leading-5 text-ink-soft">{animal.summary}</span>
+                      <span className="mt-2 text-xs text-bark">一起玩 · {animal.game?.name}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              </div>
               <button type="button" disabled={!companion || saving} onClick={() => void finish().catch((err: unknown) => console.error("入林失败", err))} className={`${nextClass} shrink-0`}>{saving ? "正在认识你…" : "一起入林"}</button>
             </div>
           )}

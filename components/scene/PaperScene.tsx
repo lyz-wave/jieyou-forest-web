@@ -125,13 +125,14 @@ export function PaperScene({
   }, [vp, lighting, quality, reducedMotion]);
 
   return (
+    // overflow-clip 而不是 hidden：舞台比视口大，hidden 仍会被 focus() 程序滚动，浮层会跟着移出屏幕
     <div
       data-testid="paper-scene"
       data-time={time}
       data-quality={quality}
       data-parallax={parallax.source}
       data-layout={ctx?.layout}
-      className="paper-scene fixed inset-0 overflow-hidden"
+      className="paper-scene fixed inset-0 overflow-clip"
       style={{
         ...lightingCssVars(lighting),
         background: "linear-gradient(to bottom, var(--paper-sky-top), var(--paper-sky-bottom))",

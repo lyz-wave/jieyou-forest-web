@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. **先修第 9.1 节的手机回归**，再开始第 8 组。
+4. 第 7 组（存储与入林）已完成并通过验证；下一步从第 8 组「森林主场景」开始。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -78,7 +78,7 @@
 | 4 | 纸偶 + 阿橘 + 风格样板页 + WebKit 点击修复 | ✅ 已勾选，画风已确认 |
 | 5 | 森林生活（地面、领地、移动、调度、聚拢、篝火阳光） | ✅ 已勾选 |
 | 6 | 其余 6 只动物和古树 | ✅ 已勾选 |
-| 7 | 存储与入林 | ⚠️ **代码基本写完但未勾选**，手机伙伴页有一个未修好的回归（见 9.1） |
+| 7 | 存储与入林 | ✅ 已完成并验证（含手机回归修复，见 9.1） |
 | 8 | 森林主场景（角色卡、古树卡、徽记、镜头、游戏面板开关） | ⏳ 只完成了 `PopupCard`（8.2）的大部分 |
 | 9 | 小游戏通用部分（ForestAI 接口 + mock、GameShell、拖拽） | ⏳ 只有 `dev` store |
 | 10 | 七个小游戏 | ❌ 未开始 |
@@ -88,7 +88,7 @@
 
 - 全量单元测试：**24 个文件、201 个测试全部通过**；`typecheck`、`lint`、`build` 通过。这是在加入手机视口断言之前的结果
 - 生产构建 E2E（`playwright.prod.config.ts`，mobile + desktop）：`onboarding.spec.ts` 和 `prod.spec.ts` 一共 10 个测试全部通过。也是在加入视口断言之前
-- 之后在 `e2e/onboarding.spec.ts` 的 `finishOnboarding` 里加了两条断言：「今天想先找谁玩？」标题和「一起入林」按钮必须在视口内。**手机项目上这两条断言失败**。由于 3 个入林测试都调用 `finishOnboarding`，手机上的 3 个入林测试现在应该都会失败；桌面应该仍然通过
+- 补上视口断言后曾暴露手机回归（见 9.1）。修复后重新验证：生产 E2E（mobile + desktop）10 个全部通过；开发服务器 E2E 31 通过、2 跳过；typecheck、lint、201 个单元测试、生产构建全部通过（2026-10-06）
 - 开发服务器上的 E2E（`*.dev.spec.ts`，样板页和森林生活）：历史上连续 3 轮 35 个测试一致通过，另有 2 个按设计跳过。之后没有重跑
 
 ---
@@ -454,69 +454,33 @@ interface PuppetDef {
 
 ---
 
-## 9. 下一步：完成第 7 组
+## 9. 第 7 组：已完成，下一步第 8 组
 
-### 9.1 【阻塞】手机伙伴页：选中卡片后标题和「一起入林」被滚出屏幕
+### 9.1 手机伙伴页标题被滚出屏幕（2026-10-06 已修复）
 
-**现象**：375×667 视口下，在第 5 步选中「阿橘」（最后一张卡片）后，「今天想先找谁玩？」标题完全离开视口。`e2e/onboarding.spec.ts` 中 `finishOnboarding` 的 `toBeInViewport()` 断言失败。
+**现象**：375×667 下选中最后一张伙伴卡（阿橘）后，标题「今天想先找谁玩？」移出屏幕，`e2e/onboarding.spec.ts` 里的 `toBeInViewport()` 断言在 mobile 项目上失败。
 
-**已经测量到的事实**（用 `scripts/diag-companion.mjs` 对生产构建测得）：
+**根因**（用 `scripts/diag-companion.mjs` 对生产构建实测）：
 
-| 时间点 | 纸卡顶部 | 纸卡 scrollTop | 伙伴列表 scrollTop | `.paper-scene` scrollTop |
-|---|---|---|---|---|
-| 选择前 | -259px | 0 | 0 | 287 |
-| 选中阿橘后 | -259px | 153 | 0 | 287 |
+1. `PaperScene` 根元素用 `overflow: hidden`，而 hidden 仍然允许程序滚动。舞台比视口大（要给视差留余量），`focus()` 把 `.paper-scene` 滚了 287px，整个浮层跟着上移，纸卡顶部落到 -259px
+2. 伙伴列表的滚动容器是 `fieldset`，浏览器没有按预期裁剪它的内容：纸卡 scrollHeight 776 > clientHeight 623，选中卡片时聚焦又把纸卡本身滚了 153px
 
-纸卡 scrollHeight 776，clientHeight 623；fieldset 的 scrollHeight 624，clientHeight 379。
+**修复**：
 
-**根因分析**：
+- `components/scene/PaperScene.tsx`：根元素 `overflow-hidden` → `overflow-clip`（clip 不允许任何滚动，包括程序滚动）
+- `components/onboarding/Onboarding.tsx`：滚动容器从 `fieldset` 换到外层 `div`（`mt-4 min-h-0 shrink overflow-y-auto p-1`），`fieldset` 只负责网格布局
 
-1. `PaperScene` 根元素用的是 `overflow-hidden`。`overflow: hidden` 的元素仍然可以被程序滚动，比如 `focus()` 会把聚焦元素滚进可见区域。舞台比视口大（为视差留了余量），所以 `.paper-scene` 被滚了 287px，整个 overlay（包括纸卡）在选择之前就已经上移了 287px
-2. 选中最后一张卡片后，聚焦的单选框把**纸卡本身**又滚了 153px。也就是说伙伴列表并没有成为真正的滚动容器：纸卡内容总高仍然超过纸卡高度。推测原因是 `fieldset` 作为 flex 子项和滚动容器时，Chrome 的布局有已知的特殊行为（fieldset 不容易被 `min-height: 0` 压缩）。**这一点还没有单独验证**
+**修复后实测**：`.paper-scene` 完全不再滚动；选中阿橘后只有列表内部滚动（scrollTop 245），标题停在 76–108px、「一起入林」停在 583–631px，都在 667px 视口内。截图 `docs/onboarding/mobile-companion.png` 自检通过。
 
-**计划中的修复**（还没有应用，当时文件编辑被工具拦截）：
+**教训**：`overflow: hidden` 只挡住用户的滚动，挡不住 `focus()` 引起的程序滚动；要让一块区域彻底不可滚动，用 `overflow: clip`。浮层「自己往上跑」时，先查祖先元素的 scrollTop。
 
-1. `components/scene/PaperScene.tsx`：根元素 `className="paper-scene fixed inset-0 overflow-hidden"` 改成 `overflow-clip`。`overflow: clip` 不允许任何滚动，包括程序滚动
-2. `components/onboarding/Onboarding.tsx` 的伙伴步骤：
-   ```tsx
-   <div className="flex max-h-[calc(100dvh-112px)] flex-col">
-     <h2 ...>今天想先找谁玩？</h2>
-     <p ...>...</p>
-     {/* 滚动放在 div 上，不放在 fieldset 上 */}
-     <div className="mt-4 min-h-0 shrink overflow-y-auto p-1">
-       <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-3" disabled={saving}>
-         ...7 张卡片...
-       </fieldset>
-     </div>
-     <button className="... shrink-0">一起入林</button>
-   </div>
-   ```
-3. 可能还需要让 `PopupCard` 在这种场景下不自己滚动（比如给 `PopupCard` 加一个属性，由内容自己管理滚动），视修完后的测量结果决定
+### 9.2 第 7 组验收情况
 
-**验证方法**：
-1. `npm run build`
-2. 用 `npm run start -- -p <空闲端口>` 起一个生产服务器，修改 `scripts/diag-companion.mjs` 里的地址后运行 `PLAYWRIGHT_BROWSERS_PATH=0 node scripts/diag-companion.mjs`。期望：`.paper-scene` 的 scrollTop 为 0；选中后纸卡 scrollTop 为 0；如果需要滚动，滚的是伙伴列表
-3. `npm run test:e2e -- --config=playwright.prod.config.ts e2e/onboarding.spec.ts e2e/prod.spec.ts`：mobile 和 desktop 全部通过
-4. 查看 `docs/onboarding/mobile-companion.png`：标题、7 张卡片的滚动区域、「一起入林」都在画面里
-5. **把 `overflow-hidden` 改成 `overflow-clip` 会影响整个场景**，必须同时重跑开发服务器上的 E2E（样板页、森林生活，尤其是视差不露边和聚拢测试），确认没有破坏
-6. 修完后删掉 `scripts/diag-companion.mjs`
+对照 `specs/onboarding/spec.md` 逐条确认，均有测试覆盖：首次进入入林 / 再次进入直达森林；五步顺序；资料只在最后一步写入（中途刷新不写入）；昵称为空或全空白不可继续、最多 12 字；中途刷新从头开始；减弱动画时晨雾只淡出；IndexedDB 不可用时给出提示且能继续。
 
-### 9.2 第 7 组收尾
+`tasks.md` 里 7.1–7.5 已勾选；8.2（`PopupCard`）已实现并有测试，一并勾选。
 
-1. 修好 9.1 并通过上面全部验证
-2. 运行 `npm run typecheck && npm run lint && npm test && npm run build`
-3. 对照 `specs/onboarding/spec.md` 的每个场景逐条确认：
-   - 第一次打开显示入林；再次打开直接进森林 ✓（E2E 覆盖）
-   - 五步顺序、古树欢迎不超过 3 句 ✓
-   - 完整走完后保存 `{ nickname: "小满", companion: "fox", onboardedAt }` ✓
-   - 昵称为空或只有空格时「继续」不可用 ✓；最多 12 个字 ✓
-   - 中途刷新从头开始 ✓
-   - 减弱动画时晨雾只淡出、没有镜头推进 ✓
-   - IndexedDB 不可用时显示「森林这次记不住你，关掉页面后需要重新认识哦」并能继续 ✓
-4. 在 `tasks.md` 里把 7.1–7.5 改成 `[x]`。8.2（PopupCard）的折起 / 折回、焦点管理、Esc、点外部关闭都已实现并有测试，可以在第 8 组时一并确认后勾选
-
----
-
+**复用已经在跑的 next dev**：Next 16 同一项目目录只允许一个 `next dev`，用户开着预览时 `npm run test:e2e` 的开发服务器起不来。用 `playwright.existing-dev.config.ts` 复用已在运行的实例（默认 http://localhost:3200，可用 `DEV_URL` 覆盖）。
 ## 10. 第一阶段剩余任务：实现指南
 
 下面每一项都给出建议的做法和验收标准。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
