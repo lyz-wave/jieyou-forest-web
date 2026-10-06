@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. 第 7 组（存储与入林）已完成并通过验证；下一步从第 8 组「森林主场景」开始。
+4. 第 7 组（存储与入林）和第 8 组的 8.1/8.2/8.3/8.5 已完成并通过验证（记录见第 9 节）；下一步是第 8.4 剩下的游戏面板部分和第 9 组「小游戏通用部分」。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -63,7 +63,7 @@
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
-| 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **进行中，38/63 项已勾选** |
+| 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **进行中，47/63 项已勾选** |
 | 2 | 倾诉、圆桌发言、古树总结、追问（接 Claude API） | 未开始 |
 | 3 | 沉淀、年轮三级浏览、成长卡片 | 未开始 |
 | 4 | 记忆唤醒、风险检测、数据导入导出删除、音效、动画打磨 | 未开始 |
@@ -79,7 +79,7 @@
 | 5 | 森林生活（地面、领地、移动、调度、聚拢、篝火阳光） | ✅ 已勾选 |
 | 6 | 其余 6 只动物和古树 | ✅ 已勾选 |
 | 7 | 存储与入林 | ✅ 已完成并验证（含手机回归修复，见 9.1） |
-| 8 | 森林主场景（角色卡、古树卡、徽记、镜头、游戏面板开关） | ⏳ 只完成了 `PopupCard`（8.2）的大部分 |
+| 8 | 森林主场景（角色卡、古树卡、徽记、镜头、游戏面板开关） | ✅ 8.1/8.2/8.3/8.5 已完成并验证（见 9.3）；8.4 只剩游戏面板本体（属 9.2）和「回到森林后轻跳」 |
 | 9 | 小游戏通用部分（ForestAI 接口 + mock、GameShell、拖拽） | ⏳ 只有 `dev` store |
 | 10 | 七个小游戏 | ❌ 未开始 |
 | 11 | 阶段验收（E2E 主流程、全量检查、README） | ❌ 未开始 |
@@ -90,6 +90,7 @@
 - 生产构建 E2E（`playwright.prod.config.ts`，mobile + desktop）：`onboarding.spec.ts` 和 `prod.spec.ts` 一共 10 个测试全部通过。也是在加入视口断言之前
 - 补上视口断言后曾暴露手机回归（见 9.1）。修复后重新验证：生产 E2E（mobile + desktop）10 个全部通过；开发服务器 E2E 31 通过、2 跳过；typecheck、lint、201 个单元测试、生产构建全部通过（2026-10-06）
 - 开发服务器上的 E2E（`*.dev.spec.ts`，样板页和森林生活）：历史上连续 3 轮 35 个测试一致通过，另有 2 个按设计跳过。之后没有重跑
+- **第 8 组完成后（2026-10-06）**：`npx vitest run` 27 个文件 225 个测试通过；`npm run typecheck`、`npm run lint` 通过；生产 E2E（`playwright.prod.config.ts`，mobile + desktop，含新的 forest-home 8 项 ×2）**26 个全部通过**；开发服务器 E2E 30 通过、2 跳过，`dev-iphone` 命中测试单独重跑通过（要带 `PLAYWRIGHT_BROWSERS_PATH=0`，否则 WebKit 找不到）
 
 ---
 
@@ -355,11 +356,11 @@ interface PuppetDef {
 |---|---|---|
 | `app` | `phase: loading / onboarding / forest`、`profile`、`persistent`、`boot()`、`completeOnboarding(profile)` | 启动时读资料；完成入林时写入；会同步 `forest.companion` |
 | `scene` | `timeOverride`、`quality`、`qualityLocked`、`reducedMotionOverride` | 开发调试覆盖 |
-| `forest` | `companion`、`gather`、`pending`、`wanderPaused` | 角色卡打开时应设置 `wanderPaused` |
+| `forest` | `companion`、`gather`、`pending`、`wanderPaused`、`opened`、`openedAt`、`pendingGame`、`openCard(id, at?) / closeCard() / startGame(gameId) / closeGame()` | `openCard` 会暂停走动并记住动物当时的舞台坐标（镜头据此推近）；`startGame` 先折回角色卡再记下要玩哪个游戏 |
 | `gameContext` | `entries`、`add(game, content)`、`clear()` | 格式「【游戏名】内容」，最多 20 条，只在内存里 |
 | `dev` | `simulateAIFailure` | 第 9.4 项要接到调试 UI 上 |
 
-规格里写的 `forest` 还应该有「打开的卡片、打开的游戏、镜头焦点、刚玩过的动物」，这些属于第 8 组，**还没有实现**。
+规格里写的 `forest` 还差「刚玩过的动物」（回到森林后轻跳一次），等第 9 组的面板接上再做。
 
 ### 5.9 本地存储（`lib/db/profile.ts`）
 
@@ -440,10 +441,10 @@ interface PuppetDef {
 | # | 问题 | 位置 | 建议 |
 |---|---|---|---|
 | 1 | 竖屏聚拢时部分小动物被大动物挡住；夜晚最左侧的松鼠只露出半身 | `lib/forest/gather.ts` 的 portrait 布局 | 用户没有要求马上改。可以考虑改成前后两排，测试里加「每只动物至少有 N% 面积可见」 |
-| 2 | 首页 `/` 上点击动物只会播放点击反馈，没有角色卡 | `ForestApp` 没给 `ForestAnimals` 传 `onActivate` | 第 8 组 |
-| 3 | 没有伙伴小叶子徽记 | `PaperPuppet` 有 `badge` 属性但没用 | 第 8.1 项 |
-| 4 | 首页没有「我的年轮」入口 | 应该在古树卡里 | 第 8.3 项 |
-| 5 | 古树没有作为可点击角色放进森林（目前古树只是纸层里的形状） | `ForestApp` / `lib/scene.ts` | 第 8.1 项：在古树树冠或树干位置放一个透明的 44px 以上热区按钮，aria-label「岁岁，古树，森林守护者」 |
+| ~~2~~ | ~~首页 `/` 上点击动物只会播放点击反馈，没有角色卡~~ | `components/forest/ForestHome.tsx` | 第 8 组已做（9.3） |
+| ~~3~~ | ~~没有伙伴小叶子徽记~~ | `components/forest/CompanionBadge.tsx` | 第 8.1 项已做 |
+| ~~4~~ | ~~首页没有「我的年轮」入口~~ | 古树卡里 | 第 8.3 项已做（只给提示，不跳转） |
+| ~~5~~ | ~~古树没有作为可点击角色放进森林~~ | `components/forest/TreeSpot.tsx` + `lib/scene.ts` 的 `TREE_HOTSPOT` | 第 8.1 项已做：树冠上一块 340×195 的透明热区（`perspectiveScale={false}`，避免 3D 投影二次缩放），aria-label「岁岁，古树，森林守护者」 |
 | 6 | 「坐好」提示文案是「大家都在听啦，倾诉功能下个版本开放」，规格写的是「大家都在听啦。倾诉功能下个版本开放」 | `GatherControls.tsx` | 对齐规格或者跟用户确认 |
 | 7 | 免责声明用的是米白色小字（`text-cream`，10px），压在草地上，对比度可能不够 | `ForestApp.tsx` | 第 8 组顺便检查对比度 |
 | 8 | 入林说明卡写着「本阶段不向外部服务发送内容」 | `Onboarding.tsx` | **第二阶段接入 Claude API 后这句话就不对了，必须改成准确的说法**：数据保存在本地，与 AI 对话时内容会发送给 AI 服务处理，服务端不保存 |
@@ -454,7 +455,7 @@ interface PuppetDef {
 
 ---
 
-## 9. 第 7 组：已完成，下一步第 8 组
+## 9. 已完成的组：第 7 组、第 8 组（8.1/8.2/8.3/8.5）
 
 ### 9.1 手机伙伴页标题被滚出屏幕（2026-10-06 已修复）
 
@@ -480,40 +481,55 @@ interface PuppetDef {
 
 `tasks.md` 里 7.1–7.5 已勾选；8.2（`PopupCard`）已实现并有测试，一并勾选。
 
-**复用已经在跑的 next dev**：Next 16 同一项目目录只允许一个 `next dev`，用户开着预览时 `npm run test:e2e` 的开发服务器起不来。用 `playwright.existing-dev.config.ts` 复用已在运行的实例（默认 http://localhost:3200，可用 `DEV_URL` 覆盖）。
+**复用已经在跑的 next dev**：Next 16 同一项目目录只允许一个 `next dev`，用户开着预览时 `npm run test:e2e` 的开发服务器起不来。用 `playwright.existing-dev.config.ts` 复用已在运行的实例（默认 http://localhost:3200，可用 `DEV_URL` 覆盖）。注意 `PLAYWRIGHT_BROWSERS_PATH=0` 要用本仓库 `node_modules/playwright-core/.local-browsers` 里的浏览器；不加这个变量时 WebKit（dev-iphone）会去找 `~/Library/Caches/ms-playwright` 而报「Executable doesn't exist」。
+
+### 9.3 第 8 组：森林主场景（2026-10-06 完成）
+
+**新增/改动的文件**
+
+| 文件 | 作用 |
+|---|---|
+| `components/forest/ForestHome.tsx` | 森林浮层：欢迎条（昵称 + 今天的伙伴）、存储不可用的提示、`GatherControls`、角色卡、底部免责声明 |
+| `components/forest/CharacterCard.tsx` | 角色卡内容（名字 / 物种 · 思维方式 / 「我的伙伴」/ 简介 / 心理学依据 / 样句 / 「一起玩：X」或「🌳 我的年轮」） |
+| `components/forest/CompanionBadge.tsx` | 伙伴的小叶子徽记（`data-testid="companion-badge"`） |
+| `components/forest/TreeSpot.tsx` | 古树的透明热区：`WorldActor` + `perspectiveScale={false}`，aria-label「岁岁，古树，森林守护者」 |
+| `lib/scene.ts` 的 `TREE_HOTSPOT` | 树冠上的热区（x 0 / y 465 / 340×195 / depth 280），放在树冠是因为树干被啄木鸟、松鼠、猫头鹰占满 |
+| `lib/stores/forest.ts` | 新增 `opened`、`openedAt`、`pendingGame` 与 `openCard / closeCard / startGame / closeGame` |
+| `components/scene/ActorContext.ts`、`lib/scene/tap.ts`、`WorldActor`、`PaperPuppet` | 44px 可点区域（见下） |
+
+**44px 可点区域（这段最容易踩坑，务必先读懂）**
+
+- **两道缩放会互相抵消**：`WorldActor` 的 transform 是 `translate3d(x·unit·s, (y-500)·unit·s, -depth) scale(s·k)`（`s=(P+depth)/P`、`k=sizeAt(depth)`），它自己在 `perspective: 1000px` 的容器里又往后退了 `depth`，浏览器投影会再乘一次 `1/s`。所以**盒子的屏幕缩放 = `screenScale(depth, perspectiveScale)` = `perspectiveScale ? sizeAt(depth) : 1`**，舞台坐标恰好等于屏幕坐标。把它当成 `s·k` 会算小补量
+- `lib/scene/tap.ts`：`transformScale(depth, perspectiveScale)`（给 transform 用）、`screenScale(depth, perspectiveScale)`（给热区算）、`tapTip(box, scale, min = 44)`（还差多少才够 44，按短边算）。纯函数，11 个单测
+- 用法：`WorldActor` 里 `useTransform` 算出 `tapTip({width: w, height: h}, screenScale(...))` 塞进 `ActorContext`；`PaperPuppet` 把按钮里放一个 `aria-hidden` 的透明 `span[data-tap-cover]`，四边 `calc(pad * -0.5)` 撑开。**纸偶本来就够 44px 时不补**，否则会和旁边动物的热区抢点击
+- `PaperPuppet` 上原来的 `minWidth/minHeight: 44` 已删掉：那是 transform 前的尺寸，够不到 44px 还会把纸偶撑变形
+- 手机竖屏只有树上的笃笃和松鼠不够 44px（31.9×31.9、35.5×35.5），补完正好 44
+- **横屏要把水獭和乌龟的落脚点分开**：补热区后两只的矩形相交 1.2px，把乌龟的首锚点从 `bank(220, 24)` 挪到 `bank(190, 24)`
+
+**E2E（`e2e/forest-home.spec.ts`，8 个用例 × 2 项目）与踩过的坑**
+
+- **森林一直在动，Playwright 的 `locator.click()` 等不到「元素稳定」**：手机上 `data-parallax = drift`（headless 里没有陀螺仪），相机用 20 秒李萨如曲线持续平移，3.2 秒漂 4px，`click` 直接 90 秒超时。改成先量出热区坐标、再 `page.mouse.click(中心)`（真正的命中测试，不等稳定性）
+- 视差推到最大是**两个轴同时**推满：`hypot(32.4, 32.4) = 45.8`，断言要逐轴比 `≤ PARALLAX_MARGIN * 0.9`
+- 桌面上鼠标停在点击位置本身就有视差偏移，关卡片后不能用 `isIdentity` 判断镜头归位，要比 `m43`（z）
+- 手机上笃笃屏幕上只有 44px：先量「纸偶按钮 ∪ 补出来的热区」再点它的左上角，才真的验证到补出来的那一圈
+
+**验证**（2026-10-06）：`npx vitest run` 27 文件 225 测试通过；`typecheck`、`lint` 通过；生产 E2E（mobile + desktop）26 个全部通过；开发服务器 E2E 30 通过 + 2 跳过 + `dev-iphone` 命中测试通过（需 `PLAYWRIGHT_BROWSERS_PATH=0`）。
+
+**还没做**：8.4 的游戏面板本体（`GameShell`，属第 9 组）和「回到森林后刚玩过的动物轻跳一下」。`tasks.md` 里 8.4 仍未勾选，勾选前必须把这两件做完。
+
 ## 10. 第一阶段剩余任务：实现指南
 
 下面每一项都给出建议的做法和验收标准。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
 
-### 第 8 组：森林主场景
+### 第 8 组：森林主场景（已完成，见 9.3）
 
-**8.1 ForestHome**
-- 把 `ForestApp` 里 `phase === "forest"` 的部分抽成 `components/forest/ForestHome.tsx`
-- 放置 7 只动物 + 古树热区；伙伴动物用 `PaperPuppet` 的 `badge` 显示小叶子（素材放进 `lib/animals.ts` 或 `lib/scene.ts`）
-- 免责声明「解忧森林不能替代专业心理咨询」，不遮挡交互
-- 「🍃 开始倾诉」触发聚拢，聚拢期间按钮隐藏（`GatherControls` 已经这样做了）
-- 验收：375×667 下 7 只动物、古树、「开始倾诉」都完整可见，热区不小于 44×44 且互不重叠；只有伙伴身上有徽记
+8.1、8.2、8.3、8.5 都已实现并验证。**8.4 只剩游戏面板本身**：
 
-**8.2 PopupCard**：已基本完成，见 5.11。确认规格场景后勾选
-
-**8.3 角色卡与古树卡**
-- 角色卡内容：名字、物种、一句话思维方式、心理学依据、一句样句、「一起玩：{游戏名}」按钮；伙伴的卡额外显示「我的伙伴」。数据全部来自 `ANIMALS`
-- 打开卡片时设置 `forest.wanderPaused = true`，关闭时恢复
-- 关闭时焦点回到那只动物（`PopupCard` 已经会把焦点还给打开它的元素，确认纸偶按钮就是那个元素）
-- 古树卡：岁岁的介绍 + 「🌳 我的年轮」按钮；点按钮显示纸条「年轮还在生长，过些日子再来看看」，不跳转
-- 验收：点墨墨，卡片从底边折起，显示「理性分析」和「一起玩：事实还是猜测」；按 Esc，卡片折回，焦点回到墨墨
-
-**8.4 镜头与游戏面板**
-- `forest` store 增加：打开的卡片、打开的游戏、镜头焦点、刚玩过的动物
-- 点「一起玩」：关掉角色卡，镜头轻轻推向这只动物（用 `CameraFocus`，depth 用动物当前深度），游戏面板像立体书一样折起；手机上占满视口宽度
-- 每个面板有「回到森林」，Esc 也能关；关闭时反向播放，场景不重新加载
-- 回到森林后，刚玩过的动物调用一次 `PuppetHandle.react()`（需要从 `ForestAnimal` 暴露这个能力，比如通过 store 里的「刚玩过的动物」+ effect 触发）
-- 减弱动画时没有镜头推近，只淡入淡出
-
-**8.5 E2E**
-- 两个视口下所有热区不小于 44px 且互不重叠
-- 视差推到最大时不露边（样板页已有类似测试，首页也要有）
-- 入林 → 森林 → 打开角色卡 → Esc 关闭 → 焦点回到动物
+- 点「一起玩」时 store 已经会先折回角色卡、记下 `pendingGame`（`startGame(gameId)`），并把卡片的位置信息清掉
+- 面板要做的就是：读 `pendingGame`，像立体书一样折起（`PopupCard` 已有折起动画和焦点管理，可以复用或参照），带「回到森林」按钮，Esc 也能关，关闭时调 `closeGame()`，场景不重新加载
+- 面板做完后，「回到森林后刚玩过的动物轻跳一下」：在 `forest` store 里加一个「刚玩过的动物」字段，`ForestHome` 用 effect 看到它时让对应 `ForestAnimal` 调一次 `PuppetHandle.react()`（`ForestAnimal` 里已经 `useRef` 持有 puppet 句柄，点动物时就是这么调 react 的）
+- 减弱动画时 react() 只做透明度呼吸（`PaperPuppet` 里已有分支），不用额外处理
+- 做完后补 E2E：点角色卡 → 一起玩 → 面板出现 → 回到森林 → 卡片、镜头、动物都恢复，并且动物跳了一下（可以用 `data-pose` 或 transform 断言）
 
 ### 第 9 组：小游戏通用部分
 
@@ -727,9 +743,8 @@ interface Memory {
 
 然后：
 - 运行 git status、openspec list、npm run typecheck、npm run lint、npm test，确认当前状态与 HANDOFF.md 第 2 节是否一致，有差异先告诉我
-- 先修复 HANDOFF.md 第 9.1 节的手机伙伴页回归，按第 9.1 节的验证方法逐项验证
-- 完成第 7 组收尾（第 9.2 节），在 tasks.md 里勾选
-- 然后按 tasks.md 顺序继续第 8 组
+- 第 7、8 组已完成（记录在第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
+- 然后按 tasks.md 顺序继续：先补完 8.4 剩下的游戏面板（第 9 组 9.2 的 `GameShell`），再做第 9 组其余项和第 10 组的七个小游戏
 
 要求：
 - 用中文沟通
