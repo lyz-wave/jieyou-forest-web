@@ -1,0 +1,119 @@
+/*
+ * 纸偶动画。
+ * - 外层 <g data-part>：点击反馈（Motion，流畅）
+ * - 中层 <g class=idle>：待机动画（steps() 定格感）
+ * - 内层 <g class=gait>：步态动画（走路时腿摆动、翅膀扇动），也是 steps()
+ * 参数通过 CSS 变量传入：--dur 周期、--steps 步数、--delay 相位、--amt 幅度、--ox/--oy 关节点。
+ */
+.idle,
+.gait {
+  transform-box: view-box;
+  transform-origin: var(--ox) var(--oy);
+}
+
+.idle {
+  animation-duration: var(--dur);
+  animation-delay: var(--delay);
+  animation-timing-function: steps(var(--steps), jump-none);
+  animation-iteration-count: infinite;
+}
+
+.breathe {
+  animation-name: breathe;
+  animation-direction: alternate;
+}
+
+.sway {
+  animation-name: sway;
+  animation-direction: alternate;
+}
+
+/* 眨眼：大部分时间睁着，周期末尾快速闭一下 */
+.blink {
+  animation-name: blink;
+}
+
+.reduced.breathe,
+.reduced.sway {
+  animation: none;
+}
+
+.joint {
+  transform-box: view-box;
+  transform-origin: var(--ox) var(--oy);
+}
+
+/* 步态：只有纸偶处于对应姿态时才播放；一步约 0.5 秒，每秒 12 帧 */
+[data-pose="walk"] .legFront,
+[data-pose="run"] .legFront {
+  animation: stride 0.5s steps(6, jump-none) infinite alternate;
+}
+
+[data-pose="walk"] .legBack,
+[data-pose="run"] .legBack {
+  animation: stride 0.5s steps(6, jump-none) -0.5s infinite alternate;
+}
+
+[data-pose="run"] .legFront,
+[data-pose="run"] .legBack {
+  animation-duration: 0.25s;
+  animation-timing-function: steps(3, jump-none);
+}
+
+[data-pose="fly"] .wing,
+[data-pose="hop"] .wing {
+  animation: flap 0.25s steps(3, jump-none) infinite alternate;
+}
+
+/* 走动时把待机摆动停掉，避免和步态叠加 */
+[data-pose]:not([data-pose="idle"]) .sway {
+  animation-play-state: paused;
+}
+
+@keyframes breathe {
+  from {
+    transform: scale(1, 1);
+  }
+  to {
+    transform: scale(calc(1 + var(--amt) * 0.4), calc(1 + var(--amt)));
+  }
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(calc(var(--amt) * -1deg));
+  }
+  to {
+    transform: rotate(calc(var(--amt) * 1deg));
+  }
+}
+
+@keyframes blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  94%,
+  96% {
+    transform: scaleY(var(--amt));
+  }
+}
+
+@keyframes stride {
+  from {
+    transform: rotate(-16deg);
+  }
+  to {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes flap {
+  from {
+    transform: rotate(-30deg) scaleY(1);
+  }
+  to {
+    transform: rotate(25deg) scaleY(0.7);
+  }
+}

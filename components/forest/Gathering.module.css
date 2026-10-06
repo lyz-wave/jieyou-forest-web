@@ -1,0 +1,51 @@
+/* 篝火：几片火苗纸片按定格节奏跳动，下面一圈暖光 */
+.flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flicker var(--dur) steps(4, jump-none) var(--delay) infinite alternate;
+}
+
+.glow {
+  animation: pulse 1.6s steps(6, jump-none) infinite alternate;
+}
+
+/* 阳光：一片斜铺在草地上的纸光，光线纸条缓缓呼吸 */
+.ray {
+  animation: breathe 4s steps(24, jump-none) var(--delay) infinite alternate;
+}
+
+.reduced .flame,
+.reduced .glow,
+.reduced .ray {
+  animation: none;
+}
+
+@keyframes flicker {
+  0% {
+    transform: scale(1, 1) skewX(0deg);
+  }
+  50% {
+    transform: scale(0.92, 1.12) skewX(-4deg);
+  }
+  100% {
+    transform: scale(1.05, 0.9) skewX(5deg);
+  }
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
