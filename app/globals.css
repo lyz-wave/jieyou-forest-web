@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
+/*
+ * 纸色变量用 @property 注册，时段切换时可以用 transition 平滑过渡。
+ * 具体色值由 lib/scene/lighting.ts 在运行时写到场景根元素上，这里只给初始值。
+ */
+@property --paper-sky-top { syntax: "<color>"; inherits: true; initial-value: #cfe3e0; }
+@property --paper-sky-bottom { syntax: "<color>"; inherits: true; initial-value: #f3ecdc; }
+@property --paper-sky { syntax: "<color>"; inherits: true; initial-value: #e4ece2; }
+@property --paper-hill-far { syntax: "<color>"; inherits: true; initial-value: #b9cbbb; }
+@property --paper-tree-far { syntax: "<color>"; inherits: true; initial-value: #93b39a; }
+@property --paper-forest-mid { syntax: "<color>"; inherits: true; initial-value: #5f8f64; }
+@property --paper-meadow { syntax: "<color>"; inherits: true; initial-value: #7da55e; }
+@property --paper-fore { syntax: "<color>"; inherits: true; initial-value: #3f6e3f; }
+@property --paper-trunk { syntax: "<color>"; inherits: true; initial-value: #8a6446; }
+@property --paper-stream { syntax: "<color>"; inherits: true; initial-value: #9cc7c9; }
+@property --paper-cloud { syntax: "<color>"; inherits: true; initial-value: #fbf6ea; }
+@property --paper-bloom { syntax: "<color>"; inherits: true; initial-value: #c8553d; }
+@property --paper-bloom-center { syntax: "<color>"; inherits: true; initial-value: #f0c25e; }
+@property --paper-shadow { syntax: "<color>"; inherits: true; initial-value: #28321f; }
+@property --paper-shadow-alpha { syntax: "<number>"; inherits: true; initial-value: 0.3; }
+@property --puppet-shade { syntax: "<color>"; inherits: true; initial-value: #ffffff; }
+@property --puppet-shade-alpha { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --paper-tint { syntax: "<color>"; inherits: true; initial-value: rgb(255 240 200 / 0); }
+@property --paper-glow { syntax: "<color>"; inherits: true; initial-value: rgb(255 214 140 / 0); }
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper-cream: #f3ecdc;
+  --paper-cream-deep: #e8dcc2;
+  --paper-ink: #3b3328;
+  --paper-ink-soft: #6b5d4b;
+  --paper-moss: #5f8f64;
+  --paper-sun: #f0c25e;
+  --paper-bark: #8a6446;
+  --paper-vermilion: #c8553d;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: var(--paper-cream);
+  --color-cream-deep: var(--paper-cream-deep);
+  --color-ink: var(--paper-ink);
+  --color-ink-soft: var(--paper-ink-soft);
+  --color-moss: var(--paper-moss);
+  --color-sun: var(--paper-sun);
+  --color-bark: var(--paper-bark);
+  --color-vermilion: var(--paper-vermilion);
+  --font-sans: "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  background: var(--paper-cream);
+  color: var(--paper-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* 键盘焦点：朱红描边，像用彩笔圈出来 */
+:focus-visible {
+  outline: 2px dashed var(--paper-vermilion);
+  outline-offset: 3px;
+}
+
+/* 放在 components 层，Tailwind 工具类（absolute、px-4 等）才能覆盖这里的默认值 */
+@layer components {
+  /*
+   * 纸张按钮：米白卡纸 + 轻投影；按下时像纸被压下去。
+   * 四个角的圆角各不相同，模拟手剪卡纸的不规则边缘。
+   */
+  .paper-button {
+    position: relative;
+    background: var(--paper-cream);
+    color: var(--paper-ink);
+    border-radius: 14px 18px 15px 17px / 17px 14px 18px 15px;
+    box-shadow: 0 3px 0 rgb(59 51 40 / 0.18), 0 6px 14px rgb(59 51 40 / 0.14);
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+    touch-action: manipulation;
+  }
+
+  .paper-button:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgb(59 51 40 / 0.18), 0 2px 6px rgb(59 51 40 / 0.12);
+  }
+
+  .paper-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .paper-card {
+    background: var(--paper-cream);
+    color: var(--paper-ink);
+    border-radius: 20px 24px 22px 26px / 24px 20px 26px 22px;
+    box-shadow: 0 4px 0 rgb(59 51 40 / 0.12), 0 14px 32px rgb(59 51 40 / 0.2);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  .paper-button {
+    transition: none;
+  }
+}
+
+/* 时段切换时纸色平滑过渡（变量已通过 @property 注册，才能插值） */
+.paper-scene {
+  transition-property:
+    --paper-sky-top, --paper-sky-bottom, --paper-hill-far, --paper-tree-far, --paper-forest-mid, --paper-meadow,
+    --paper-fore, --paper-trunk, --paper-stream, --paper-cloud, --paper-bloom, --paper-bloom-center, --paper-shadow, --paper-shadow-alpha, --puppet-shade, --puppet-shade-alpha, --paper-tint, --paper-glow;
+  transition-duration: 3s;
+  transition-timing-function: ease-in-out;
 }
