@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useScene } from "@/components/scene/SceneContext";
 import type { AnimalDef, AnimalId } from "@/lib/animals";
 import { gatherSeats } from "@/lib/forest/gather";
+import type { WorldPos } from "@/lib/forest/ground";
 import { createWanderScheduler } from "@/lib/forest/scheduler";
 import { TERRITORIES } from "@/lib/forest/territory";
 import { useForestStore } from "@/lib/stores/forest";
+import { CompanionBadge } from "./CompanionBadge";
 import { ForestAnimal, type ActorCommand } from "./ForestAnimal";
 
 type Cast = (AnimalDef & { id: AnimalId })[];
@@ -20,7 +22,13 @@ const GATHER_MAX_SECONDS = 5;
  * - 聚拢：所有动物去半圆座位，坐下后朝向中心
  * - 散开：回到各自的家
  */
-export function ForestAnimals({ cast, onActivate }: { cast: Cast; onActivate?: (id: AnimalId) => void }) {
+export function ForestAnimals({
+  cast,
+  onActivate,
+}: {
+  cast: Cast;
+  onActivate?: (id: AnimalId, at: WorldPos) => void;
+}) {
   const { layout, reducedMotion } = useScene();
   const companion = useForestStore((s) => s.companion);
   const gather = useForestStore((s) => s.gather);
@@ -106,7 +114,8 @@ export function ForestAnimals({ cast, onActivate }: { cast: Cast; onActivate?: (
           animal={a}
           command={commands[a.id] ?? null}
           onArrive={(cid) => onArrive(a.id, cid)}
-          onActivate={() => onActivate?.(a.id)}
+          onActivate={(at) => onActivate?.(a.id, at)}
+          badge={companion === a.id ? <CompanionBadge /> : null}
         />
       ))}
     </>

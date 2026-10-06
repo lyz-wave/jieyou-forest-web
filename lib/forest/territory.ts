@@ -71,7 +71,9 @@ export const TERRITORIES: Record<Layout, Record<AnimalId, Territory>> = {
     owl: { perch: "branch", anchors: [branchTop(118), branchTop(146), branchTop(160)] },
     squirrel: { perch: "hollow", anchors: [hollow(), hollow(4)] },
     otter: { perch: "water", anchors: [inWater(300), inWater(420), inWater(540)] },
-    turtle: { perch: "ground", anchors: [bank(220, 24), bank(170, 24), bank(260, 26)] },
+    // 乌龟的落脚点要和水獭离远些：横屏下这两只都站在溪流一带，
+    // 补到 44px 的可点区域会相交（E2E「布局与热区」量得出来）
+    turtle: { perch: "ground", anchors: [bank(190, 24), bank(170, 24), bank(260, 26)] },
     bear: { perch: "ground", anchors: [onGround(-420, 40), onGround(-340, 50), onGround(-500, 34)] },
     fox: { perch: "ground", anchors: [onGround(-200, 30), onGround(-140, 40), onGround(-260, 26)] },
   },

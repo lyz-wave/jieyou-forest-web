@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useAnimate } from "motion/react";
+import { motion, useAnimate, useMotionValue, useTransform } from "motion/react";
 import { forwardRef, useImperativeHandle, type CSSProperties, type ReactNode } from "react";
+import { useActorTapPad } from "@/components/scene/ActorContext";
 import { idleDelay, idleSteps, type GaitRole, type PuppetDef, type PuppetPart } from "@/lib/puppet/types";
 import styles from "./PaperPuppet.module.css";
 
@@ -160,6 +161,10 @@ export const PaperPuppet = forwardRef<
 ) {
   const [scope, animate] = useAnimate<HTMLButtonElement>();
   const flip = facing !== def.facing;
+  // 纸偶被祖先缩放后可能不足 44px：往外垫一圈透明热区，补多少由 WorldActor 算好放在 context 里
+  const fallbackPad = useMotionValue(0);
+  const tapPad = useActorTapPad() ?? fallbackPad;
+  const tapInset = useTransform(tapPad, (v) => (v > 0 ? v / -2 : 0));
 
   useImperativeHandle(
     ref,
@@ -191,8 +196,14 @@ export const PaperPuppet = forwardRef<
       data-facing={facing}
       onClick={() => onActivate?.()}
       className={`group pointer-events-auto relative block h-full w-full cursor-pointer rounded-[40%] outline-offset-4 ${className ?? ""}`}
-      style={{ minWidth: 44, minHeight: 44 }}
     >
+      {/* 热区：垫在纸偶底下（画在最下面、命中却在），点到纸偶外面一点点也算点它 */}
+      <motion.span
+        aria-hidden
+        data-tap-cover
+        className="absolute"
+        style={{ left: tapInset, right: tapInset, top: tapInset, bottom: tapInset }}
+      />
       <motion.div data-puppet-body className="absolute inset-0" style={{ transformOrigin: "50% 100%" }}>
         <div className="absolute inset-0" style={{ transform: flip ? "scaleX(-1)" : undefined }}>
           {/* 剪影阴影：整组一起降透明度，部件重叠处不会叠深；翻转时阴影偏移方向保持跟随光源 */}

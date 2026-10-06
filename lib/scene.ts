@@ -174,6 +174,13 @@ export const TREE_SPOTS = {
   crownTop: placeTree([{ x: 0, y: 40 }])[0],
 };
 
+/**
+ * 古树的可点区域（舞台坐标，(x, y) 是底边中点，和 WorldActor 一致）。
+ * 放在树冠上：树干被啄木鸟、松鼠和树枝上的猫头鹰占着，树冠又大又空，手机上最好点。
+ * depth 用 forest 纸层的深度，所以 WorldActor 里 perspectiveScale 要关掉，投影才和纸层一致。
+ */
+export const TREE_HOTSPOT = { x: 0, y: 465, width: 340, height: 195, depth: 280 };
+
 export function ancientTree(): AncientTree {
   const trunkPts: Point[] = [
     { x: -62, y: 360 },

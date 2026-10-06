@@ -2,9 +2,10 @@
 
 import { motion, useTransform, type MotionValue } from "motion/react";
 import type { ReactNode } from "react";
-import { sizeAt } from "@/lib/forest/ground";
 import { PERSPECTIVE } from "@/lib/scene";
 import { STAGE_H } from "@/lib/scene/depth";
+import { screenScale, tapTip, transformScale } from "@/lib/scene/tap";
+import { ActorContext } from "./ActorContext";
 import { useScene } from "./SceneContext";
 
 /**
@@ -42,12 +43,13 @@ export function WorldActor({
     const d = depth.get();
     // 位置补偿和纸层一样：静止时舞台坐标就是屏幕位置
     const s = (PERSPECTIVE + d) / PERSPECTIVE;
-    const k = perspectiveScale ? sizeAt(d) : 1;
     // 世界原点在视口中心；舞台 y=500 对应视口中心
     const px = x.get() * unit;
     const py = (y.get() - STAGE_H / 2) * unit;
-    return `translate3d(${px * s}px, ${py * s}px, ${-d}px) scale(${s * k})`;
+    return `translate3d(${px * s}px, ${py * s}px, ${-d}px) scale(${transformScale(d, perspectiveScale)})`;
   });
+  // 屏幕上的缩放越小，纸偶越难点中：小动物要往外补一圈透明热区（纸偶自己去贴）
+  const tapPad = useTransform(() => tapTip({ width: w, height: h }, screenScale(depth.get(), perspectiveScale)));
   return (
     <motion.div
       data-testid={testId}
@@ -62,7 +64,7 @@ export function WorldActor({
         transformStyle: "preserve-3d",
       }}
     >
-      {children}
+      <ActorContext.Provider value={tapPad}>{children}</ActorContext.Provider>
     </motion.div>
   );
 }

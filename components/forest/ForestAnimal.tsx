@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useTransform, type MotionValue } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { PaperPuppet, type PuppetHandle } from "@/components/puppet/PaperPuppet";
 import { useScene } from "@/components/scene/SceneContext";
 import { WorldActor } from "@/components/scene/WorldActor";
@@ -62,17 +62,21 @@ export function ForestAnimal({
   command,
   onArrive,
   onActivate,
+  badge,
 }: {
   animal: AnimalDef & { id: AnimalId };
   command: ActorCommand | null;
   onArrive?: (commandId: number) => void;
-  onActivate?: () => void;
+  /** 点动物时回调，带上它此刻站的位置（角色卡据此把镜头推近） */
+  onActivate?: (at: WorldPos) => void;
+  /** 伙伴动物的小叶子徽记 */
+  badge?: ReactNode;
 }) {
   const { lighting, reducedMotion, unit, layout } = useScene();
   const territory = TERRITORIES[layout][animal.id];
   const home = territory.anchors[0];
   const motionState = useActorMotion(animal.id, home, animal.puppet.facing);
-  const { moveTo, face } = motionState;
+  const { moveTo, face, position } = motionState;
   const puppet = useRef<PuppetHandle>(null);
   const size = HABITS[animal.id].size[layout];
   const { dx, dy } = shadowOffset(lighting, size * unit * 0.04);
@@ -128,9 +132,10 @@ export function ForestAnimal({
           reducedMotion={reducedMotion}
           facing={motionState.facing}
           pose={motionState.pose}
+          badge={badge}
           onActivate={() => {
             void puppet.current?.react();
-            onActivate?.();
+            onActivate?.(position());
           }}
         />
       </div>

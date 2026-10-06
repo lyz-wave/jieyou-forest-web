@@ -1,18 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
+import { finishOnboarding as enterForest } from "./helpers";
 
-const finishOnboarding = async (page: Page): Promise<void> => {
-  await page.getByRole("button", { name: "走进森林" }).click();
-  await page.getByRole("button", { name: "你好，岁岁" }).click();
-  await page.getByRole("textbox", { name: "你的昵称" }).fill("小满");
-  await page.getByRole("button", { name: "继续", exact: true }).click();
-  await page.getByRole("button", { name: "我知道了" }).click();
-  await page.getByRole("radio", { name: /阿橘/ }).check();
-  await expect(page.getByRole("heading", { name: "今天想先找谁玩？" })).toBeInViewport();
-  await expect(page.getByRole("button", { name: "一起入林" })).toBeInViewport();
-  await page.screenshot({ path: `docs/onboarding/${test.info().project.name}-companion.png` });
-  await page.getByRole("button", { name: "一起入林" }).click();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toBeVisible();
-};
+const finishOnboarding = (page: Page): Promise<void> =>
+  enterForest(page, {
+    screenshot: `docs/onboarding/${test.info().project.name}-companion.png`,
+    atCompanionStep: async (at) => {
+      await expect(at.getByRole("heading", { name: "今天想先找谁玩？" })).toBeInViewport();
+      await expect(at.getByRole("button", { name: "一起入林" })).toBeInViewport();
+    },
+  });
 
 test("首次入林最后才保存，刷新后直接回到森林", async ({ page }) => {
   const errors: string[] = [];
