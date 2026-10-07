@@ -53,9 +53,12 @@ describe("游戏面板外壳", () => {
   });
 
   it("失败时动物挠挠头，说同一句提示，重试按钮回调且输入还在", async () => {
+    // 串行跑没事，但并行跑全量时 userEvent 默认的 delay: 0 会让最后一个字偶尔还没落进
+    // DOM 就走到断言（实测 1/11 出现「…，真」缺最后一位）。打字不用定时器就没有这个竞态。
+    const user = userEvent.setup({ delay: null });
     const { onRetry, view } = open({ status: "ready" });
     const input = await screen.findByLabelText("我的想法");
-    await userEvent.type(input, "，真的");
+    await user.type(input, "，真的");
     view.rerender(
       <GameShell title="事实还是猜测" animal="owl" status="failed" onClose={vi.fn()} onRetry={onRetry}>
         <input aria-label="我的想法" defaultValue="我怕大家觉得我很差" />
@@ -66,7 +69,7 @@ describe("游戏面板外壳", () => {
     expect(failure).toHaveTextContent("挠挠头");
     expect(failure).toHaveTextContent(AI_FAILURE_LINE);
     expect(input).toHaveValue("我怕大家觉得我很差，真的");
-    await userEvent.click(screen.getByRole("button", { name: "再试一次" }));
+    await user.click(screen.getByRole("button", { name: "再试一次" }));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
