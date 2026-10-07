@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useState, type ReactElement } from "react";
 import { forestAI } from "@/lib/ai";
 import { BREAKDOWN_MAX, BREAKDOWN_MIN, isValidInput, textLength } from "@/lib/ai/types";
@@ -107,7 +108,7 @@ export function HideNutsGame({ onClose }: { onClose: () => void }): ReactElement
 
       {encourage !== null ? (
         <p data-testid="nut-encourage" className="paper-card mt-3 px-3 py-3 text-sm text-ink">
-          <span aria-hidden>🐿️</span> {encourage}
+          <PuppetMark id="squirrel" size={16} /> {encourage}
         </p>
       ) : null}
     </GameShell>

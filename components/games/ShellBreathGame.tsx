@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
   DEFAULT_ROUNDS,
@@ -117,10 +118,10 @@ export function ShellBreathGame({ onClose }: { onClose: () => void }): ReactElem
       >
         <div
           aria-hidden
-          className="paper-card flex h-32 w-32 items-center justify-center text-5xl"
+          className="paper-card flex h-32 w-32 items-center justify-center"
           style={{ transform: progress.done || progress.phase === "exhale" ? "scale(0.92)" : "scale(1)" }}
         >
-          🐢
+          <PuppetMark id="turtle" size={80} />
         </div>
         {phase === "running" ? (
           <p className="mt-3 text-sm text-ink">
@@ -171,7 +172,7 @@ export function ShellBreathGame({ onClose }: { onClose: () => void }): ReactElem
       {phase === "done" ? (
         <>
           <p data-testid="breath-closing" className="paper-card mt-4 px-3 py-3 text-sm text-ink">
-            <span aria-hidden>🐢</span> {closingLine()}
+            <PuppetMark id="turtle" size={16} /> {closingLine()}
           </p>
           <button type="button" onClick={start} className="paper-button mt-3 w-full py-2.5 text-sm">
             再来一轮

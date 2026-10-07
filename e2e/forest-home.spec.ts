@@ -268,7 +268,7 @@ test.describe("森林主场景", () => {
     const card = page.getByRole("dialog");
     await expect(card.getByRole("heading", { name: "岁岁" })).toBeVisible();
 
-    await card.getByRole("button", { name: "🌳 我的年轮" }).click();
+    await card.getByRole("button", { name: "我的年轮" }).click();
     await expect(card.getByRole("status")).toHaveText("年轮还在生长，过些日子再来看看");
     await expect(card).toBeVisible();
     expect(page.url()).toBe(url);
@@ -278,7 +278,7 @@ test.describe("森林主场景", () => {
     await page.goto("/");
     await finishOnboarding(page);
 
-    const start = page.getByRole("button", { name: "🍃 开始倾诉" });
+    const start = page.getByRole("button", { name: "开始倾诉" });
     await expect(start).toBeVisible();
     const box = await hotspotBox(page, "start-gather");
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);

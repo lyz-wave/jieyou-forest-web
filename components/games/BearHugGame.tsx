@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
   HUG_MIN_MS,
@@ -101,16 +102,16 @@ export function BearHugGame({ onClose }: { onClose: () => void }): ReactElement 
           onPointerUp={handleUp}
           onPointerCancel={handleUp}
           onPointerLeave={handleUp}
-          className="paper-card relative flex h-36 w-36 touch-none select-none items-center justify-center text-6xl"
+          className="paper-card relative flex h-36 w-36 touch-none select-none items-center justify-center"
         >
-          <span aria-hidden>{holding ? "🤗" : "🐻"}</span>
+          <PuppetMark id="bear" size={92} />
         </button>
         <p className="mt-2 text-[11px] text-ink-soft">心跳 {Math.round(pulse * 100)}%</p>
       </div>
 
       {said ? (
         <p className="paper-card mt-4 px-3 py-3 text-sm text-ink">
-          <span aria-hidden>🐻</span> <span data-testid="hug-line">{said}</span>
+          <PuppetMark id="bear" size={16} /> <span data-testid="hug-line">{said}</span>
         </p>
       ) : null}
 

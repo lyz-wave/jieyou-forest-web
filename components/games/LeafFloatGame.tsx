@@ -1,5 +1,6 @@
 "use client";
 
+import { PaperGlyph } from "@/components/ui/PaperGlyph";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
   LEAF_MAX_CHARS,
@@ -100,7 +101,7 @@ export function LeafFloatGame({ onClose }: { onClose: () => void }): ReactElemen
                     {letter}
                   </span>
                 ))}
-                <span aria-hidden className="ml-2 text-[11px] text-ink-soft">🍂</span>
+                <span aria-hidden className="ml-2 inline-flex items-center text-ink-soft"><PaperGlyph kind="leaf" size={12} /></span>
               </p>
             );
           })}

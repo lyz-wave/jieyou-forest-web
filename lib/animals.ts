@@ -18,7 +18,6 @@ export interface AnimalDef {
   species: string;
   /** 思维方式（短标签） */
   mindset: string;
-  emoji: string;
   /** 一句话介绍思维方式 */
   summary: string;
   basis: string;
@@ -1052,7 +1051,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "岁岁",
     species: "古树",
     mindset: "森林守护者",
-    emoji: "🌳",
     summary: "听完大家的话，帮你把它们串起来，再把这次的成长收进年轮里。",
     basis: "整合各方视角",
     tone: "苍老温和，话不多但有分量",
@@ -1064,7 +1062,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "慢慢",
     species: "乌龟",
     mindset: "时间视角",
-    emoji: "🐢",
     summary: "把事情放到更长的时间里看看，再慢慢回到当下。",
     basis: "10-10-10 法则 + 正念",
     tone: "慢悠悠、豁达，爱讲「很久以前」",
@@ -1077,7 +1074,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "漂漂",
     species: "水獭",
     mindset: "放下与解离",
-    emoji: "🦦",
     summary: "想法只是想法，像水上的叶子，看着它漂走就好。",
     basis: "接纳承诺疗法（ACT）认知解离",
     tone: "轻松随性，爱玩水",
@@ -1090,7 +1086,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "笃笃",
     species: "啄木鸟",
     mindset: "情绪觉察",
-    emoji: "🐦",
     summary: "先承认、说出自己的情绪。情绪是信号，不是敌人。",
     basis: "情绪标注（Affect Labeling）",
     tone: "直爽有劲，句子短",
@@ -1103,7 +1098,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "跳跳",
     species: "松鼠",
     mindset: "行动派",
-    emoji: "🐿️",
     summary: "把大问题拆成今天就能做的一小步，先动起来再说！",
     basis: "问题解决疗法 / 行为激活",
     tone: "活泼，急性子，有干劲",
@@ -1116,7 +1110,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "墨墨",
     species: "猫头鹰",
     mindset: "理性分析",
-    emoji: "🦉",
     summary: "分清事实和猜测，看看自己有没有掉进思维陷阱。",
     basis: "认知行为疗法（CBT）",
     tone: "冷静睿智，爱提问",
@@ -1129,7 +1122,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "团团",
     species: "熊",
     mindset: "自我关怀",
-    emoji: "🐻",
     summary: "像对待好朋友那样，温柔地对待自己。",
     basis: "自我关怀（Self-compassion）",
     tone: "温柔，说话慢，会抱抱",
@@ -1142,7 +1134,6 @@ export const ANIMALS: Record<CharacterId, AnimalDef> = {
     name: "阿橘",
     species: "狐狸",
     mindset: "换个角度",
-    emoji: "🦊",
     summary: "同一件事总有另一面，换个角度，也许能笑出来。",
     basis: "认知重构（Reframing）",
     tone: "机灵俏皮，但不轻浮",

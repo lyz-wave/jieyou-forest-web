@@ -149,7 +149,7 @@ test.describe("减弱动画", () => {
     await open(page);
     await expect(page.getByTestId("paper-scene")).toHaveAttribute("data-parallax", "none");
     await expect(page.getByTestId("particles")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "🍃 开启体感" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "开启体感" })).toHaveCount(0);
     // 呼吸和摆动关闭，只保留眨眼
     const running = await page.locator("[data-part] > g").evaluateAll((els) =>
       els.map((el) => getComputedStyle(el).animationName).filter((n) => n !== "none"),

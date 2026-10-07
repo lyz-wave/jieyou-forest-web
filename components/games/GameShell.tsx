@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { createContext, useContext, type ReactElement, type ReactNode } from "react";
 import { ANIMALS, type AnimalId } from "@/lib/animals";
 import { AI_FAILURE_LINE } from "@/lib/ai/types";
@@ -49,14 +50,14 @@ export function GameShell({
       <div aria-busy={thinking} data-game-body className="mt-3">
         {thinking ? (
           <p role="status" className="paper-card mb-3 px-3 py-2 text-xs text-ink-soft">
-            <span aria-hidden>{def.emoji}</span> {def.name}正在想…
+            <PuppetMark id={def.id} size={16} /> {def.name}正在想…
           </p>
         ) : null}
 
         {status === "failed" ? (
           <div role="status" className="paper-card mb-3 px-3 py-2 text-xs text-ink-soft">
             <p>
-              <span aria-hidden>{def.emoji}</span> {def.name}挠挠头：{AI_FAILURE_LINE}
+              <PuppetMark id={def.id} size={16} /> {def.name}挠挠头：{AI_FAILURE_LINE}
             </p>
             <button type="button" onClick={onRetry} className="paper-button mt-2 w-full py-2 text-xs">
               再试一次

@@ -24,7 +24,7 @@ test("首次入林最后才保存，刷新后直接回到森林", async ({ page 
   await page.screenshot({ path: `docs/onboarding/${test.info().project.name}-forest.png` });
   await expect(page.getByText("小满，欢迎回到森林")).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible();
   await expect(page.getByRole("button", { name: "走进森林" })).toHaveCount(0);
   await expect(page.getByText("今天的伙伴 · 阿橘")).toBeVisible();
   expect(errors).toEqual([]);

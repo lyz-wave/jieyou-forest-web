@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useRef, useState, type ReactElement } from "react";
 import { PaperPuppet } from "@/components/puppet/PaperPuppet";
 import { PopupCard } from "@/components/ui/PopupCard";
@@ -95,7 +96,7 @@ export function Onboarding({ onEnter }: { onEnter?: () => void }): ReactElement 
                       <input type="radio" name="companion" value={animal.id} checked={companion === animal.id}
                         onChange={() => setCompanion(animal.id)} className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" aria-label={`${animal.name}，${animal.mindset}，${animal.game?.name}`} />
                       <span className="absolute inset-0 rounded-2xl peer-focus-visible:outline-2 peer-focus-visible:outline-dashed peer-focus-visible:outline-vermilion" />
-                      <span className="flex items-center justify-between gap-2"><span className="text-lg">{animal.emoji} {animal.name}</span><span aria-hidden className="text-moss">{companion === animal.id ? "✓" : ""}</span></span>
+                      <span className="flex items-center justify-between gap-2"><span className="text-lg"><PuppetMark id={animal.id} size={22} /> {animal.name}</span><span aria-hidden className="text-moss">{companion === animal.id ? "✓" : ""}</span></span>
                       <span className="mt-1 text-xs leading-5 text-ink-soft">{animal.summary}</span>
                       <span className="mt-2 text-xs text-bark">一起玩 · {animal.game?.name}</span>
                     </label>

@@ -39,7 +39,7 @@ test.describe("减弱动画", () => {
     await finishOnboarding(page);
     await expect(page.getByTestId("paper-scene")).toHaveAttribute("data-parallax", "none");
     await expect(page.getByTestId("particles")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "🍃 开启体感" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "开启体感" })).toHaveCount(0);
     // 相机不再自动漂移：隔一会儿再量，世界层的 transform 必须一模一样
     const world = () => page.getByTestId("paper-world").evaluate((el) => getComputedStyle(el).transform);
     const before = await world();

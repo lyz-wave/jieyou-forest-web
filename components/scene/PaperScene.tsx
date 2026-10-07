@@ -1,5 +1,6 @@
 "use client";
 
+import { PaperGlyph } from "@/components/ui/PaperGlyph";
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { useParallaxInput } from "@/hooks/useParallaxInput";
@@ -178,7 +179,10 @@ export function PaperScene({
               className="paper-button absolute right-3 top-20 z-30 px-3 py-2 text-sm"
               style={{ marginTop: "env(safe-area-inset-top)" }}
             >
-              🍃 开启体感
+              <span className="inline-flex items-center gap-1.5">
+                <PaperGlyph kind="leaf" size={13} />
+                开启体感
+              </span>
             </button>
           )}
         </SceneContext.Provider>

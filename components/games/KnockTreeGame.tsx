@@ -1,5 +1,7 @@
 "use client";
 
+import { PaperGlyph } from "@/components/ui/PaperGlyph";
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import {
@@ -101,13 +103,13 @@ export function KnockTreeGame({ onClose }: { onClose: () => void }): ReactElemen
             aria-label="敲一敲树干"
             onClick={handleTap}
             disabled={phase !== "knock"}
-            className="paper-card flex h-32 w-32 items-center justify-center text-5xl disabled:opacity-70"
+            className="paper-card flex h-32 w-32 items-center justify-center disabled:opacity-70"
           >
-            <span aria-hidden>🌳</span>
+            <PuppetMark id="tree" size={72} />
           </button>
           {pecking ? (
             <span aria-hidden className="pointer-events-none absolute -right-3 -top-3 text-2xl">
-              🪶
+              <PaperGlyph kind="feather" size={22} />
             </span>
           ) : null}
         </div>
@@ -168,7 +170,7 @@ export function KnockTreeGame({ onClose }: { onClose: () => void }): ReactElemen
 
       {phase === "reply" ? (
         <p data-testid="knock-reply" className="paper-card mt-4 px-3 py-3 text-sm text-ink">
-          <span aria-hidden>🐦</span> {reply}
+          <PuppetMark id="woodpecker" size={16} /> {reply}
         </p>
       ) : null}
     </GameShell>

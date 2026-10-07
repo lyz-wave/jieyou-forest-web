@@ -89,7 +89,7 @@ function PartNode({
   );
 }
 
-function PuppetSvg({
+export function PuppetSvg({
   def,
   silhouette,
   reducedMotion,

@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useState, type ReactElement } from "react";
 import { PopupCard } from "@/components/ui/PopupCard";
 import { ANIMALS, type AnimalId, type CharacterId } from "@/lib/animals";
@@ -27,9 +28,7 @@ export function CharacterCard({
   return (
     <PopupCard open labelledBy="character-card-title" onClose={onClose}>
       <div className="flex items-start gap-3">
-        <span aria-hidden className="text-3xl leading-none">
-          {def.emoji}
-        </span>
+        <PuppetMark id={id} size={44} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 id="character-card-title" className="text-xl">
@@ -63,7 +62,10 @@ export function CharacterCard({
       ) : (
         <>
           <button type="button" onClick={() => setRingTip(true)} className="paper-button mt-5 w-full py-2.5">
-            🌳 我的年轮
+            <span className="inline-flex items-center gap-1.5">
+              <PuppetMark id="tree" size={18} />
+              我的年轮
+            </span>
           </button>
           {ringTip && (
             <p role="status" className="paper-card mt-3 px-3 py-2 text-center text-xs leading-5">

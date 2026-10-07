@@ -1,5 +1,6 @@
 "use client";
 
+import { PaperGlyph } from "@/components/ui/PaperGlyph";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useForestStore } from "@/lib/stores/forest";
@@ -29,7 +30,10 @@ export function GatherControls({ count }: { count: number }) {
             onClick={() => startGather(count)}
             className="paper-button pointer-events-auto px-7 py-3 text-lg"
           >
-            🍃 开始倾诉
+            <span className="inline-flex items-center gap-2">
+              <PaperGlyph kind="leaf" size={18} />
+              开始倾诉
+            </span>
           </motion.button>
         )}
         {gather === "seated" && (

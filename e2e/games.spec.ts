@@ -29,7 +29,7 @@ async function openGame(page: Page, animal: string, title: string): Promise<void
 /** 面板右上角的「回到森林」 */
 async function backToForest(page: Page): Promise<void> {
   await page.getByRole("button", { name: "回到森林" }).click();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible();
 }
 
 /** 先把一件东西点选，再点目标 —— 拖拽游戏的替代操作，键盘之外最省事的一条 */

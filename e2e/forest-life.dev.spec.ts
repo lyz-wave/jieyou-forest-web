@@ -72,8 +72,8 @@ test.describe("走动", () => {
 test("白天聚拢：大家走到空地坐好，空地上有阳光；散开后回到原处", async ({ page }) => {
   await open(page, "day");
   const homeWorldX = await foxWorldX(page);
-  await page.getByRole("button", { name: "🍃 开始倾诉" }).click();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toHaveCount(0);
+  await page.getByRole("button", { name: "开始倾诉" }).click();
+  await expect(page.getByRole("button", { name: "开始倾诉" })).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText("大家都在听啦", { timeout: 8000 });
   await expect(page.locator('[data-kind="sunlight"]')).toBeAttached();
   await expect(page.locator('[data-kind="campfire"]')).toHaveCount(0);
@@ -87,7 +87,7 @@ test("白天聚拢：大家走到空地坐好，空地上有阳光；散开后�
   expect(await fox(page).getAttribute("data-pose")).toBe("idle");
 
   await page.getByRole("button", { name: "让大家散开" }).click();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible({ timeout: 8000 });
   await expect(page.locator("[data-kind]")).toHaveCount(0);
   // 回到原处：比较的是阿橘在 3D 世界里的位置（transform），不受镜头拉回和视差漂移影响。
   // 散开后平时的走动会恢复，阿橘可能又在自己领地里挪了一步，所以只要求回到领地附近
@@ -96,7 +96,7 @@ test("白天聚拢：大家走到空地坐好，空地上有阳光；散开后�
 
 test("夜晚聚拢：空地中央是篝火", async ({ page }) => {
   await open(page, "night");
-  await page.getByRole("button", { name: "🍃 开始倾诉" }).click();
+  await page.getByRole("button", { name: "开始倾诉" }).click();
   await expect(page.getByRole("status")).toContainText("大家都在听啦", { timeout: 8000 });
   await expect(page.locator('[data-kind="campfire"]')).toBeAttached();
   await expect(page.locator('[data-kind="sunlight"]')).toHaveCount(0);
@@ -105,10 +105,10 @@ test("夜晚聚拢：空地中央是篝火", async ({ page }) => {
 test("散开后回到原来的大小（大小只由远近决定）", async ({ page }) => {
   await open(page);
   const home = await foxBox(page);
-  await page.getByRole("button", { name: "🍃 开始倾诉" }).click();
+  await page.getByRole("button", { name: "开始倾诉" }).click();
   await expect(page.getByRole("status")).toContainText("大家都在听啦", { timeout: 8000 });
   await page.getByRole("button", { name: "让大家散开" }).click();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible({ timeout: 8000 });
   await expect.poll(async () => Math.abs((await foxBox(page)).width - home.width), { timeout: 4000 }).toBeLessThan(2);
 });
 
@@ -117,7 +117,7 @@ test.describe("减弱动画", () => {
 
   test("聚拢时不走过去，直接出现在座位上", async ({ page }) => {
     await open(page);
-    await page.getByRole("button", { name: "🍃 开始倾诉" }).click();
+    await page.getByRole("button", { name: "开始倾诉" }).click();
     // 立刻到位：没有行走姿态
     await expect(page.getByRole("status")).toContainText("大家都在听啦", { timeout: 2000 });
     expect(await fox(page).getAttribute("data-pose")).toBe("idle");

@@ -8,7 +8,7 @@ export interface OnboardingOptions {
 }
 
 /**
- * 走完五步入林引导，停在森林主场景（「🍃 开始倾诉」可见）。
+ * 走完五步入林引导，停在森林主场景（「开始倾诉」可见）。
  * 每个视口下首次入林都要走一遍，所以抽出来共用。
  */
 export async function finishOnboarding(page: Page, options: OnboardingOptions = {}): Promise<void> {
@@ -21,7 +21,7 @@ export async function finishOnboarding(page: Page, options: OnboardingOptions = 
   await options.atCompanionStep?.(page);
   if (options.screenshot) await page.screenshot({ path: options.screenshot });
   await page.getByRole("button", { name: "一起入林" }).click();
-  await expect(page.getByRole("button", { name: "🍃 开始倾诉" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible();
 }
 
 /** 屏幕上的一个矩形（视口坐标） */

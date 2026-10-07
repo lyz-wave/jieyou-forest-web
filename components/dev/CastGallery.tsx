@@ -1,5 +1,6 @@
 "use client";
 
+import { PuppetMark } from "@/components/puppet/PuppetMark";
 import { useRef } from "react";
 import { PaperPuppet, type PuppetHandle } from "@/components/puppet/PaperPuppet";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -23,8 +24,8 @@ function Card({ a }: { a: AnimalDef }) {
         />
       </div>
       <figcaption className="text-center">
-        <div className="text-base">
-          {a.emoji} {a.name}
+        <div className="flex items-center justify-center gap-1.5 text-base">
+          <PuppetMark id={a.id} size={22} /> {a.name}
         </div>
         <div className="text-xs text-ink-soft">{a.mindset}</div>
       </figcaption>
