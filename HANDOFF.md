@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. 第 7 组（存储与入林）和第 8 组的 8.1/8.2/8.3/8.5 已完成并通过验证（记录见第 9 节）；下一步是第 8.4 剩下的游戏面板部分和第 9 组「小游戏通用部分」。
+4. 第 1 阶段 **63 项全部完成**（第 1–11 组，记录见第 9 节），并已跑过一遍全量检查：typecheck、lint 零报错，371 个单元／组件测试通过，生产 E2E 38 个通过，开发 E2E 30 个通过 2 个跳过，WebKit 命中测试通过，`npm run build` 成功，两个视口的截图已自检；README 也已按验收要求改写。**下一步是第二阶段（倾诉与圆桌，见第 11 节），开始前要和用户确认范围并走 OpenSpec。** 目前所有代码仍停在工作区，没有提交。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -63,7 +63,7 @@
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
-| 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **进行中，47/63 项已勾选** |
+| 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **✅ 已完成，63/63 项已勾选**（2026-10-06 全量检查通过，见 9.6） |
 | 2 | 倾诉、圆桌发言、古树总结、追问（接 Claude API） | 未开始 |
 | 3 | 沉淀、年轮三级浏览、成长卡片 | 未开始 |
 | 4 | 记忆唤醒、风险检测、数据导入导出删除、音效、动画打磨 | 未开始 |
@@ -79,10 +79,10 @@
 | 5 | 森林生活（地面、领地、移动、调度、聚拢、篝火阳光） | ✅ 已勾选 |
 | 6 | 其余 6 只动物和古树 | ✅ 已勾选 |
 | 7 | 存储与入林 | ✅ 已完成并验证（含手机回归修复，见 9.1） |
-| 8 | 森林主场景（角色卡、古树卡、徽记、镜头、游戏面板开关） | ✅ 8.1/8.2/8.3/8.5 已完成并验证（见 9.3）；8.4 只剩游戏面板本体（属 9.2）和「回到森林后轻跳」 |
-| 9 | 小游戏通用部分（ForestAI 接口 + mock、GameShell、拖拽） | ⏳ 只有 `dev` store |
-| 10 | 七个小游戏 | ❌ 未开始 |
-| 11 | 阶段验收（E2E 主流程、全量检查、README） | ❌ 未开始 |
+| 8 | 森林主场景（角色卡、古树卡、徽记、镜头、游戏面板开关） | ✅ 8.1–8.5 全部完成并验证（见 9.3、9.5） |
+| 9 | 小游戏通用部分（ForestAI 接口 + mock、GameShell、拖拽） | ✅ 已完成并验证（见 9.4） |
+| 10 | 七个小游戏 | ✅ 已完成并验证（见 9.5） |
+| 11 | 阶段验收（E2E 主流程、全量检查、README） | ✅ 11.1–11.4 全部完成并验证（见 9.5、9.6） |
 
 ### 2.3 最近一次验证结果（以下是事实记录，不代表现在仍然成立）
 
@@ -91,6 +91,9 @@
 - 补上视口断言后曾暴露手机回归（见 9.1）。修复后重新验证：生产 E2E（mobile + desktop）10 个全部通过；开发服务器 E2E 31 通过、2 跳过；typecheck、lint、201 个单元测试、生产构建全部通过（2026-10-06）
 - 开发服务器上的 E2E（`*.dev.spec.ts`，样板页和森林生活）：历史上连续 3 轮 35 个测试一致通过，另有 2 个按设计跳过。之后没有重跑
 - **第 8 组完成后（2026-10-06）**：`npx vitest run` 27 个文件 225 个测试通过；`npm run typecheck`、`npm run lint` 通过；生产 E2E（`playwright.prod.config.ts`，mobile + desktop，含新的 forest-home 8 项 ×2）**26 个全部通过**；开发服务器 E2E 30 通过、2 跳过，`dev-iphone` 命中测试单独重跑通过（要带 `PLAYWRIGHT_BROWSERS_PATH=0`，否则 WebKit 找不到）
+- **第 9 组完成后（2026-10-06）**：`npx vitest run` **36 个文件 269 个测试全部通过**（第 9 组新增 9 个文件 44 个测试）；`npm run typecheck`、`npm run lint` 零报错；新写的 `e2e/devtools.spec.ts`（2 个用例 ×2 视口）生产构建 **4 个全部通过**，同一个文件对着用户跑着的开发服务器（`--config=playwright.existing-dev.config.ts`，3200）**2 通过 2 跳过**（开发服务器上调试抽屉一直显示，那条只对生产构建有意义）
+- **第 10 组 + 8.4 + 11.1 完成后（2026-10-06）**：`npx vitest run` **52 个文件 371 个测试全部通过**；`typecheck`、`lint` 零报错；`e2e/games.spec.ts` 用 `playwright.existing-dev.config.ts` 对着用户跑着的开发服务器（3200）跑，mobile 46.7s、desktop 52.5s 各 1 个用例通过；截图 16 张在 `docs/games/`（七个小游戏 + gameContext 抽屉，两个视口）
+- **第 1 阶段收尾（11.2–11.4）完成后（2026-10-06）**：新增 `e2e/quality.spec.ts`（3 个用例 × 两个视口）；`npm run typecheck`、`npm run lint` 零报错；`npx vitest run` **52 个文件 371 个测试全部通过**；生产 E2E（`playwright.prod.config.ts`）**38 个全部通过（2.5 分钟）**；开发服务器 E2E（`playwright.existing-dev.config.ts`，复用 3200，dev-mobile/dev-desktop）**30 通过 2 跳过**，`dev-iphone` 的 WebKit 命中测试单独跑 **1 通过**；`npm run build` 成功；`docs/onboarding`、`docs/forest`、`docs/games` 的截图全部重新生成，已自检手机与桌面两个视口的森林主场景；`README.md` 改写成验收版
 
 ---
 
@@ -164,14 +167,24 @@ components/
     ForestAnimal.tsx         单只动物：执行指令、接触阴影、水獭水线
     Gathering.tsx (+css)     篝火（夜晚）/ 阳光（白天）纸艺元素
     GatherControls.tsx       「🍃 开始倾诉」按钮、坐好后的提示纸条和「让大家散开」
+    ForestHome.tsx           森林浮层：欢迎条、今天的伙伴、存储提示、免责声明、角色卡、开始倾诉
+    CharacterCard.tsx        角色卡 / 古树卡内容（含「🌳 我的年轮」占位提示、「我的伙伴」标记）
+    CompanionBadge.tsx       伙伴的小叶子徽记
+    TreeSpot.tsx             古树的可点热区（岁岁，perspectiveScale 关掉）
   onboarding/
     Onboarding.tsx           五步入林引导（组件测试在 Onboarding.test.tsx）
     MorningMist.tsx          晨雾纸片：完整动画时向两侧拉开，减弱动画时只淡出
   ui/
     PopupCard.tsx            立体书式纸卡：rotateX 折起、焦点管理与焦点陷阱、Esc、点外部关闭（测试在 PopupCard.test.tsx）
+  games/
+    GameShell.tsx            游戏面板外壳：标题、回到森林、思考中、失败挠头 + 重试
+    useAiRequest.ts          请求状态机（idle / thinking / ready / failed）+ 重试 + abort
+    dnd/                     DndProvider / Draggable / DropZone（拖拽 + 点选 + 键盘三路都在）
   dev/
     DebugPanel.tsx           样板页调试：时段、画质、减弱动画、帧率、查看全部角色
     CastGallery.tsx          全部角色一览
+    DevTools.tsx             开发工具挂载点（读 location.search，未启用返回 null）
+    GameContextTray.tsx      gameContext 抽屉 + 清空 + 「模拟 AI 失败」开关
 hooks/
   useParallaxInput.ts        视差来源：鼠标 / 陀螺仪 / 自动漂移 / 无；iOS 授权按钮；拒绝后记在 localStorage
   useTimeOfDay.ts            每分钟检查一次真实时段，可被 scene store 覆盖
@@ -203,17 +216,23 @@ lib/
   stores/scene.ts            时段覆盖、画质、减弱动画覆盖
   stores/forest.ts           伙伴、聚拢阶段、走动暂停
   stores/gameContext.ts      小游戏上下文（最多 20 条）
-  stores/dev.ts              模拟 AI 失败开关
+  stores/dev.ts              模拟 AI 失败开关（已接到调试抽屉）
+  dev.ts                     开发工具开关 devToolsEnabled（开发恒真，生产要 ?dev=1）
+  games/dnd.ts               zoneAtPoint 落点判定（纯函数，重叠取面积更小者）
+  ai/types.ts                ForestAI 接口、思维陷阱表 TRAPS、三种翻面版本、字数上下限、AI_FAILURE_LINE
+  ai/mock.ts                 确定性 mock：同输入同结果、600–1200ms、可 abort、可模拟失败
+  ai/index.ts                唯一实例 forestAI（第二阶段换真实现只改这里）
 e2e/
   prod.spec.ts               生产环境 /style-sample 返回 404；字体分片少于 30
   onboarding.spec.ts         入林、刷新、存储降级、减弱动画（同时把截图写到 docs/onboarding/）
   style-sample.dev.spec.ts   纸层、命中测试、steps 节奏、点击反馈、键盘、无 filter、时段阴影、画质、减弱动画、视差不露边
   forest-life.dev.spec.ts    走动（加速页面时钟）、白天 / 夜晚聚拢、散开、减弱动画
+  devtools.spec.ts           调试抽屉：生产不带 ?dev=1 不出现；能看 gameContext、能开「模拟 AI 失败」
+  helpers.ts                 finishOnboarding 等共用流程
 playwright.config.ts         5 个项目：mobile / desktop（生产 3100）、dev-mobile / dev-desktop / dev-iphone（开发 3101）
 playwright.prod.config.ts    只保留 mobile / desktop 和生产服务器
-scripts/shoot.mjs            截图脚本
-scripts/diag-companion.mjs   临时诊断脚本（9.1 修好后可删）
-docs/style-sample/  docs/cast/  docs/onboarding/   画面自检截图
+scripts/shoot.mjs            截图脚本（临时探针 diag-companion 已在 9.1 修好后删掉）
+docs/style-sample/  docs/cast/  docs/onboarding/  docs/forest/   画面自检截图
 openspec/changes/stage1-paper-forest/   第一阶段方案、规格、任务清单
 ```
 
@@ -358,9 +377,9 @@ interface PuppetDef {
 | `scene` | `timeOverride`、`quality`、`qualityLocked`、`reducedMotionOverride` | 开发调试覆盖 |
 | `forest` | `companion`、`gather`、`pending`、`wanderPaused`、`opened`、`openedAt`、`pendingGame`、`openCard(id, at?) / closeCard() / startGame(gameId) / closeGame()` | `openCard` 会暂停走动并记住动物当时的舞台坐标（镜头据此推近）；`startGame` 先折回角色卡再记下要玩哪个游戏 |
 | `gameContext` | `entries`、`add(game, content)`、`clear()` | 格式「【游戏名】内容」，最多 20 条，只在内存里 |
-| `dev` | `simulateAIFailure` | 第 9.4 项要接到调试 UI 上 |
+| `dev` | `simulateAIFailure` | 已接到调试抽屉的「模拟 AI 失败」开关（`components/dev/GameContextTray`）|
 
-规格里写的 `forest` 还差「刚玩过的动物」（回到森林后轻跳一次），等第 9 组的面板接上再做。
+`forest` 的 `lastPlayed` / `playedTimes` / `gameAnimal` / `gameAt` 就是规格里的「刚玩过的动物」和「玩这只游戏时镜头停在哪」：`closeGame()` 时记下，`ForestAnimals` 用 `playTokenFor()`（`lib/forest/play.ts`）决定让哪只跳一次（第 10 组做完，见 9.5）。
 
 ### 5.9 本地存储（`lib/db/profile.ts`）
 
@@ -389,6 +408,14 @@ interface PuppetDef {
 - `onClose` 和 `dismissible` 放在 ref 里，这样父组件重渲染时不会重新执行聚焦逻辑、把焦点从输入框抢走（有回归测试）
 - 卡片 `max-h-[calc(100dvh-32px)] overflow-y-auto`
 
+### 5.12 小游戏通用部分（`lib/ai`、`lib/games`、`components/games`、`components/dev`）
+
+- **AI 唯一入口**：游戏只 import `@/lib/ai` 的 `forestAI`，类型从 `@/lib/ai/types` 取。第一阶段是 `createMockAI`（同输入同结果、600–1200ms、可 abort、可模拟失败），第二阶段换实现只改 `lib/ai/index.ts`
+- **`useAiRequest`**：`status`、`result`、`error`、`run(text)`、`retry()`、`reset()`。失败后输入不丢（输入由游戏自己保管），思考中重复 `run` 会被忽略，卸载时 abort 上一个请求
+- **`GameShell`**：`title` / `animal` / `status` / `onRetry` / `onClose` / `children`，内部就是 `PopupCard`；`useGameBusy()` 拿到「正在想」的布尔值
+- **拖拽**：`lib/games/dnd.ts` 的 `zoneAtPoint(x, y, zones)` 是纯函数（重叠时取面积更小的那个，即更具体的目标）；`DndProvider` 管选中态和落点判定，`Draggable` / `DropZone` 都是真按钮，所以键盘和点选天然可用
+- **开发工具**：`devToolsEnabled(search, nodeEnv)` —— `NODE_ENV=development` 时恒真，生产构建要 `?dev=1`；`DevTools` 挂在森林浮层右下角，能看 gameContext、清空、打开「模拟 AI 失败」
+
 ---
 
 ## 6. 硬性规则（来自 `CLAUDE.md` 和已批准的设计）
@@ -397,7 +424,7 @@ interface PuppetDef {
 2. **性能**：只对 transform 和 opacity 做动画；做 transform 动画的元素不加 CSS filter；阴影用静态偏移副本
 3. **随机必须带种子**：用 `lib/paper/random.ts`
 4. **减弱动画**：所有动画组件都要处理 `useReducedMotion()`
-5. **AI**：小游戏只能通过 `lib/ai` 的 `ForestAI` 接口取数据（第 9 组要建）
+5. **AI**：小游戏只能通过 `lib/ai` 的 `ForestAI` 接口取数据（已建，见 5.12）；游戏里不许直接 import mock
 6. 不用 `any`；纯逻辑先写测试（TDD）
 7. 3D 容器和 world 都是 `pointer-events:none`，能交互的元素自己打开 `pointer-events-auto`。**WebKit 做 3D 命中测试时会把 world 自己的盒子算在最前面，挡住里面的动物**，这是之前「点阿橘没反应」的根因
 8. 场景只在客户端渲染
@@ -455,7 +482,7 @@ interface PuppetDef {
 
 ---
 
-## 9. 已完成的组：第 7 组、第 8 组（8.1/8.2/8.3/8.5）
+## 9. 已完成的组：第 7 组、第 8 组（8.1–8.5）、第 9 组、第 10 组、第 11 组（第 1 阶段收尾）
 
 ### 9.1 手机伙伴页标题被滚出屏幕（2026-10-06 已修复）
 
@@ -515,15 +542,103 @@ interface PuppetDef {
 
 **验证**（2026-10-06）：`npx vitest run` 27 文件 225 测试通过；`typecheck`、`lint` 通过；生产 E2E（mobile + desktop）26 个全部通过；开发服务器 E2E 30 通过 + 2 跳过 + `dev-iphone` 命中测试通过（需 `PLAYWRIGHT_BROWSERS_PATH=0`）。
 
-**还没做**：8.4 的游戏面板本体（`GameShell`，属第 9 组）和「回到森林后刚玩过的动物轻跳一下」。`tasks.md` 里 8.4 仍未勾选，勾选前必须把这两件做完。
+**8.4 的两件收尾**（游戏面板本体、「回到森林后刚玩过的动物轻跳一下」）已在第 10 组一并做完并验证，见 9.5；`tasks.md` 的 8.4 已勾选。
 
-## 10. 第一阶段剩余任务：实现指南
+### 9.4 第 9 组：小游戏通用部分（2026-10-06 已完成）
 
-下面每一项都给出建议的做法和验收标准。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
+**做了什么**
 
-### 第 8 组：森林主场景（已完成，见 9.3）
+- `lib/ai/types.ts`：`ForestAI` 接口（`splitThought` / `reframe` / `breakDown`）、思维陷阱表 `TRAPS`（灾难化、读心术、非黑即白、以偏概全）、三种翻面版本 `REFRAME_LABELS`（幽默版 / 温柔版 / 现实版）、字数上下限常量，以及 `textLength`（按字符数，emoji 算一个）和 `isValidInput`。失败文案只在这里写一次：`AI_FAILURE_LINE`「风太大了没听清，能再说一次吗？」
+- `lib/ai/mock.ts`：`createMockAI({ delayMs?, shouldFail? })`。延迟默认 600–1200ms（由输入哈希决定，不用 `Math.random()`），同一输入 → 同一结果；支持 `AbortSignal`；`shouldFail()` 为真时 reject，错误信息就是 `AI_FAILURE_LINE`
+- `lib/ai/index.ts`：唯一实例 `forestAI`，`shouldFail` 读 `useDevStore.simulateAIFailure`。第二阶段换实现只动这个文件
+- `components/games/useAiRequest.ts`：`status: idle | thinking | ready | failed` + `run / retry / reset`。重试复用上一次输入，思考中重复提交直接忽略，卸载时 abort
+- `components/games/GameShell.tsx`：标题、`回到森林`、思考中「{动物名}正在想…」（`role=status`）、失败时「{动物名}挠挠头：{AI_FAILURE_LINE}」+「再试一次」；`useGameBusy()` 给游戏禁用提交按钮；面板复用 `PopupCard`（折起动画、Esc、焦点回归都是现成的）
+- `lib/games/dnd.ts` + `components/games/dnd/`：`zoneAtPoint`（纯函数，先写测试）、`DndProvider`（选中态 + 落点判定 + registerZone）、`Draggable`、`DropZone`。点选、键盘（Tab → 回车选中 → 目标回车）、拖拽三条路都通；没放进目标就 `dragSnapToOrigin` 弹回，也不产生任何结果
+- `lib/dev.ts` + `components/dev/`：`devToolsEnabled(search, nodeEnv)`（开发环境恒真，生产要 `?dev=1`）、`DevTools`、`GameContextTray`（右下角小按钮，展开看 gameContext 条目、清空、「模拟 AI 失败」）。挂载点是 `ForestApp` 的森林浮层
 
-8.1、8.2、8.3、8.5 都已实现并验证。**8.4 只剩游戏面板本身**：
+**踩到的坑（别再重踩）**
+
+- 拖拽落点判定不要用 motion 的 `PanInfo.point`：它的文档只说「相对 device 或 page」，有歧义。改成在 `onDragEnd` 里读拖拽元素自己的 `getBoundingClientRect()` 取中点，和 `DropZone` 的 rect 是同一套视口坐标
+- `DevTools` 第一版在 `useEffect` 里 `setState(window.location.search)`，ESLint 的 `react-hooks/set-state-in-effect` 直接报错。改成 `useSyncExternalStore(subscribe, getSearch, getServerSearch)`：服务端快照是空串，客户端拿到真实地址后 React 自己重渲染
+- 测试里 mock 的函数签名必须和 `AiOptions` 对齐（`signal` 是可选的），写成 `{ signal: AbortSignal }` 会被 `tsc` 拒绝；mock 不带参数时 `mock.calls[0][0]` 会被推断成空元组，报 TS2493
+- `playwright.existing-dev.config.ts` 把**所有**项目都指向开发服务器后，「生产构建里不带 `?dev=1` 就没有调试抽屉」这条在开发服务器上必然失败。现在配置里加了 `metadata: { devServer: true }`，用例据此跳过，不再靠项目名猜
+
+### 9.5 第 10 组 + 8.4 收尾 + 11.1：七个小游戏与游戏面板（2026-10-06 已完成）
+
+**做了什么**
+
+- `components/games/GameHost.tsx`：「游戏面板宿主」。读 `forest.pendingGame`，按 id 映射到七个游戏组件（knock-tree / fact-or-guess / flip-mirror / bear-hug / shell-breath / leaf-float / hide-nuts），没值或未知 id 就不渲染任何东西；游戏里的「回到森林」调 `closeGame()`，Esc 走 `PopupCard` 现成的那套
+- `components/forest/ForestHome.tsx`：角色卡「一起玩」→ `startGame(gameId, opened)`（古树卡没有游戏，排除掉）；`<GameHost />` 挂在角色卡同一层
+- `lib/forest/play.ts`：`playTokenFor(lastPlayed, playedTimes, id)` —— 刚玩过的那只拿到「已玩次数」（数字一变，`ForestAnimal` 的 effect 就跳一次），其它动物恒为 0，不会跟着起跳
+- `components/forest/ForestAnimal.tsx`：新 prop `playToken`（默认 0），effect 里只在它非 0 时调 `puppet.current?.react()`
+- `components/forest/ForestApp.tsx`：镜头多一档 —— 面板打开时停在「玩这只游戏时的动物位置」（`gameAt` + depth 140），关掉面板自动回到森林视角
+- `lib/stores/forest.ts`：`gameAnimal` / `gameAt` / `lastPlayed` / `playedTimes`；`startGame` 记下位置并暂停走动，`closeGame` 记「刚玩过这只」并把次数 +1（没开着面板时按 Esc 不算玩过）
+- 七个游戏（纯逻辑在 `lib/games/`，组件在 `components/games/`）：
+  - 10.1 敲树洞 `knock-tree` + `lib/games/knock.ts`：3 秒停手结束一轮、连击与纸屑；情绪词最多选 3 个，笃笃按选择回应
+  - 10.2 事实还是猜测 `fact-or-guess` + `lib/games/cbt.ts`：白 / 灰气泡拖进两个树洞，点评只说「像是…」不说「错了」，命中的思维陷阱用 `TRAPS` 里的名字
+  - 10.3 翻面镜 `flip-mirror` + `lib/games/reframe.ts`：写想法 → 尾巴一扫 → `rotateY` 翻出幽默 / 温柔 / 现实三种说法；收藏任意一条才写 gameContext
+  - 10.4 熊抱 `bear-hug` + `lib/games/hug.ts`：`pickNoRepeat` 保证 20 句本地文案不连着重复；长按约 1.5 秒记「和团团抱了 2 秒」，不足 1 秒提示「再抱一会儿」，暖光与 60 次/分心跳是纯 CSS/motion
+  - 10.5 龟壳呼吸 `shell-breath` + `lib/games/breath.ts`：盒式呼吸 4-4-4-4，阶段与倒数由纯函数 `breathPhase()` 算，1–10 轮可选，Web Audio 提示音，暂停 / 结束
+  - 10.6 落叶漂流 `leaf-float` + `lib/games/leaf.ts`：写的叶子只逐字晕开，不落盘、不进 gameContext（有测试盯着 IndexedDB 与 gameContext）
+  - 10.7 藏坚果 `hide-nuts` + `lib/games/nuts.ts`：说三件今天做到的小事，折纸坚果放进树洞，跳跳打气
+- `e2e/games.spec.ts`（11.1）：入林 → 逐个玩完七盘 → 打开右下角调试抽屉核对七条 gameContext
+
+**踩到的坑（别再重踩）**
+
+- 面板走的是 `PopupCard` 的折起动画（`rotateX` 从 −88° 到 0）。动画刚开始时 `boundingBox()` 会给出被投影压扁的盒子（实测 179×1.2px），照那个坐标 `mouse.down()` 点不到东西。要先 `await button.hover()`（Playwright 会等元素稳定）再量 / 按
+- AI 游戏要等 mock 的 600–1200ms：点完「拆一拆」立刻收集气泡会拿到 0 个，得先 `expect(page.locator('[data-draggable]').first()).toBeVisible({ timeout: 15_000 })`
+
+**验证**（2026-10-06）：`npx vitest run` **52 个文件 371 个测试全部通过**；`npm run typecheck`、`npm run lint` 零报错；`e2e/games.spec.ts` 对着 3200 上跑着的开发服务器（`playwright.existing-dev.config.ts`）mobile 46.7s、desktop 52.5s 各 1 个用例通过；截图 16 张在 `docs/games/`（七个小游戏各一张 + gameContext 抽屉一张，两个视口），抽看 mobile 的 knock-tree 与 game-context 两张，画风、排版、记录内容都对。
+
+---
+
+### 9.6 第 11 组收尾：11.2 画面底线、11.3 全量检查、11.4 README（2026-10-06 已完成）
+
+**11.2 新增 `e2e/quality.spec.ts`（3 个用例 × mobile/desktop，生产构建和开发服务器都跑）**
+
+1. 字体按分片加载、**入林之后**首屏也少于 30 个分片（`page.on("request")` 数 `resourceType() === "font"`；原来的 `e2e/prod.spec.ts` 只数了首页）
+2. 森林里做动画的元素都不带 `filter`（同一批选择器 `[data-testid=paper-world], [data-puppet-body], [data-particle], [data-part], [data-layer]`）
+3. 减弱动画（`test.use({ reducedMotion: "reduce" })`）：入林后 `data-parallax="none"`、粒子数量 0、没有「🍃 开启体感」按钮、隔 400ms 两次取样的 `paper-world` transform 完全相同（相机不漂移）、`[data-part] > g` 的 `animationName` 只允许含 `blink`
+
+**这两个坑别再踩**
+
+- 新写的用例要在 `finishOnboarding(page)` **之前**先 `await page.goto("/")`：helpers 里没有导航，忘了就只有一份 about:blank，每个用例都会在等「走进森林」时各超时 90 秒。
+- `npm run test:e2e`（默认 `playwright.config.ts`）会自己起 3100 的生产构建和 3101 的 `next dev`。**用户本机开着 `npm run dev` 时，Next 16 会拒绝第二个 dev server**（`Another next dev server is already running`），整套 E2E 会以 `Error: Process from config.webServer was not able to start` 收场。收尾时改用：
+  - 生产侧：`PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test --config=playwright.prod.config.ts`（只保留 mobile/desktop 与 3100 的 webServer）
+  - 开发侧：`DEV_URL=http://localhost:3200 PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test --config=playwright.existing-dev.config.ts <文件> --project=dev-mobile --project=dev-desktop`（复用 3200 上那个 dev server）
+  - WebKit 那条（`--project=dev-iphone`）必须带 `PLAYWRIGHT_BROWSERS_PATH=0`，否则会去找 `~/Library/Caches/ms-playwright` 里并不存在的 webkit 而直接失败
+
+**顺手修掉的一个偶发测试**
+
+`components/games/GameShell.test.tsx` 的「失败时动物挠挠头…」在全量并行跑时约 11 次会挂 1 次：userEvent 默认 `delay: 0`，最后一个字还没落进 DOM 就走到断言，读到「…，真」少一位。改成 `userEvent.setup({ delay: null })` 打字之后，单文件连跑 15 次、全量连跑 6 次全绿。（教训：`userEvent.type` 的默认 delay 在并行跑全量时是个竞态来源，断言输入框的值尤其容易踩。）
+
+**11.3 全量检查（以下是真跑过的结果）**
+
+| 检查 | 命令 | 结果 |
+|---|---|---|
+| 类型 | `npm run typecheck` | 0 报错 |
+| 代码检查 | `npm run lint` | 0 报错 |
+| 单元／组件 | `npx vitest run` | 52 个文件、**371 个测试全部通过** |
+| 构建 | `npm run build` | 成功（`/`、`/_not-found`、`/style-sample`） |
+| 生产 E2E | `npx playwright test --config=playwright.prod.config.ts` | mobile + desktop **38 个全部通过（2.5 分钟）** |
+| 开发 E2E | `… --config=playwright.existing-dev.config.ts`（3200） | **30 通过、2 跳过** |
+| WebKit 命中测试 | 同上 `--project=dev-iphone` | **1 通过** |
+| 截图自检 | 生产 E2E 顺带重生成 | `docs/onboarding/` 6 张、`docs/forest/` 4 张、`docs/games/` 16 张；已看过手机与桌面两个视口的森林主场景 |
+
+**11.4 README**
+
+`README.md` 从「开发中」一句话改成验收版：第一阶段已完成的功能清单（入林引导、2.5D 森林、七只动物与七个小游戏的表格、森林里的互动、`gameContext`、AI 是 mock、无障碍与体感）、测试与覆盖、待办（第二／三／四阶段，与第 11 节一致）、已知待改进 4 条、开发提示（`?dev=1` 调试抽屉、`/style-sample` 只在开发模式、`docs/` 截图、以及上面 dev server 冲突的绕法）。
+写之前逐条核对过能力，只写了真的成立的：键盘路径确实可用（`components/games/dnd/Draggable.tsx` 是原生 `<button>`，Tab 聚焦 + 回车选中、到投放区再回车放下），对比度**没有**写成「已达标」——免责声明那行仍是第 8 节的遗留问题。
+
+---
+
+## 10. 第一阶段实现指南（已完成，留作参考）
+
+第 1 阶段的 63 项已于 2026-10-06 全部完成并通过全量检查（记录见第 9 节）。本节保留当时的做法与验收标准，供第二阶段参考。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
+
+### 第 8 组：森林主场景（已完成，见 9.3、9.5）
+
+8.1、8.2、8.3、8.5 都已实现并验证；**8.4 的游戏面板本体与「回到森林后轻跳」已在第 10 组做完**（见 9.5）。下面是当时的做法，留作参考：
 
 - 点「一起玩」时 store 已经会先折回角色卡、记下 `pendingGame`（`startGame(gameId)`），并把卡片的位置信息清掉
 - 面板要做的就是：读 `pendingGame`，像立体书一样折起（`PopupCard` 已有折起动画和焦点管理，可以复用或参照），带「回到森林」按钮，Esc 也能关，关闭时调 `closeGame()`，场景不重新加载
@@ -531,7 +646,17 @@ interface PuppetDef {
 - 减弱动画时 react() 只做透明度呼吸（`PaperPuppet` 里已有分支），不用额外处理
 - 做完后补 E2E：点角色卡 → 一起玩 → 面板出现 → 回到森林 → 卡片、镜头、动物都恢复，并且动物跳了一下（可以用 `data-pose` 或 transform 断言）
 
-### 第 9 组：小游戏通用部分
+### 第 9 组：小游戏通用部分（已完成，见 9.4）
+
+9.1–9.4 全部实现并通过测试。第 10 组的游戏直接复用这些：
+
+- AI 一律 `import { forestAI } from "@/lib/ai"`，类型从 `@/lib/ai/types` 取，不要直接 import mock- 面板外壳用 `GameShell`（标题 / 回到森林 / 思考中 / 失败挠头重试），玩法放 `children`
+- 提交按钮用 `useGameBusy()` 禁用；请求用 `useAiRequest((text, options) => forestAI.splitThought(text, options))`
+- 拖拽与点选游戏（事实还是猜测、落叶漂流、藏坚果）用 `DndProvider` + `Draggable` + `DropZone`
+- 失败文案不要再写一遍，用 `AI_FAILURE_LINE`
+- gameContext 用 `useGameContextStore.getState().add("游戏名", "内容")`
+
+**（下面是当初的接口设计，保留作背景）**
 
 **9.1 `lib/ai/types.ts` + `lib/ai/mock.ts`**
 
@@ -567,7 +692,7 @@ export function getForestAI(): ForestAI; // 本阶段返回 mock，第二阶段�
 
 **9.4 开发工具**：开发模式下的小按钮，查看当前 gameContext；「模拟 AI 失败」开关。生产构建里不出现。
 
-### 第 10 组：七个小游戏
+### 第 10 组：七个小游戏（已完成，见 9.5）
 
 每个游戏先写纯逻辑测试，再写组件。所有 gameContext 文案必须和规格**逐字一致**：
 
@@ -583,7 +708,7 @@ export function getForestAI(): ForestAI; // 本阶段返回 mock，第二阶段�
 
 所有游戏元素都按纸的材质来做（纸屑、圆形纸片气泡、折纸坚果、正反两面的卡纸镜子、多层纸片龟壳、纸灯笼暖光、几层波浪纸条组成的溪流）。素材放在 `lib/animals.ts` / `lib/scene.ts` 或新的集中素材文件里，不要散落在组件中；如果要新增素材文件，先在设计里说明。
 
-### 第 11 组：阶段验收
+### 第 11 组：阶段验收（已完成，见 9.5、9.6）
 
 - 11.1 E2E 主流程：入林 → 森林 → 逐个完成 7 个小游戏 → 检查 gameContext
 - 11.2 E2E：减弱动画模式、字体分片少于 30、动画元素没有 filter
@@ -743,8 +868,8 @@ interface Memory {
 
 然后：
 - 运行 git status、openspec list、npm run typecheck、npm run lint、npm test，确认当前状态与 HANDOFF.md 第 2 节是否一致，有差异先告诉我
-- 第 7、8 组已完成（记录在第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
-- 然后按 tasks.md 顺序继续：先补完 8.4 剩下的游戏面板（第 9 组 9.2 的 `GameShell`），再做第 9 组其余项和第 10 组的七个小游戏
+- 第 1 阶段 63 项已全部完成并通过全量检查（记录见第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
+- 下一步是第二阶段（倾诉与圆桌，设计草稿在第 11 节）：先和用户确认这次要做的范围，走 OpenSpec 流程拿到批准再动手
 
 要求：
 - 用中文沟通
