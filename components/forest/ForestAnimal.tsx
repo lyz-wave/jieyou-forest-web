@@ -63,6 +63,7 @@ export function ForestAnimal({
   onArrive,
   onActivate,
   badge,
+  playToken = 0,
 }: {
   animal: AnimalDef & { id: AnimalId };
   command: ActorCommand | null;
@@ -71,6 +72,8 @@ export function ForestAnimal({
   onActivate?: (at: WorldPos) => void;
   /** 伙伴动物的小叶子徽记 */
   badge?: ReactNode;
+  /** 刚玩完游戏回到森林时变大的数字，动物据此轻跳一下（0 = 不跳） */
+  playToken?: number;
 }) {
   const { lighting, reducedMotion, unit, layout } = useScene();
   const territory = TERRITORIES[layout][animal.id];
@@ -110,6 +113,12 @@ export function ForestAnimal({
       onArriveRef.current?.(command.id);
     });
   }, [command, moveTo, face, reducedMotion]);
+
+  // 从小游戏回到森林：刚玩过的那只轻跳一下（token 变大才跳，换一只玩不会误跳）
+  useEffect(() => {
+    if (!playToken) return;
+    void puppet.current?.react();
+  }, [playToken]);
 
   return (
     <WorldActor

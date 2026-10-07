@@ -12,6 +12,8 @@ const DEV_URL = process.env.DEV_URL ?? "http://localhost:3200";
 
 export default defineConfig({
   ...config,
+  // 打上标记：这里的 baseURL 是开发服务器，只该跑开发环境也成立的用例
+  metadata: { devServer: true },
   // dev 第一次编译比较慢，给足时间
   timeout: 90_000,
   projects: config.projects?.map((p) => ({ ...p, use: { ...p.use, baseURL: DEV_URL } })),

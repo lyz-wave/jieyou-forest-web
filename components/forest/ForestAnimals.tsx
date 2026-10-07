@@ -5,6 +5,7 @@ import { useScene } from "@/components/scene/SceneContext";
 import type { AnimalDef, AnimalId } from "@/lib/animals";
 import { gatherSeats } from "@/lib/forest/gather";
 import type { WorldPos } from "@/lib/forest/ground";
+import { playTokenFor } from "@/lib/forest/play";
 import { createWanderScheduler } from "@/lib/forest/scheduler";
 import { TERRITORIES } from "@/lib/forest/territory";
 import { useForestStore } from "@/lib/stores/forest";
@@ -33,6 +34,8 @@ export function ForestAnimals({
   const companion = useForestStore((s) => s.companion);
   const gather = useForestStore((s) => s.gather);
   const wanderPaused = useForestStore((s) => s.wanderPaused);
+  const lastPlayed = useForestStore((s) => s.lastPlayed);
+  const playedTimes = useForestStore((s) => s.playedTimes);
   const arrived = useForestStore((s) => s.arrived);
 
   const [commands, setCommands] = useState<Partial<Record<AnimalId, ActorCommand>>>({});
@@ -116,6 +119,7 @@ export function ForestAnimals({
           onArrive={(cid) => onArrive(a.id, cid)}
           onActivate={(at) => onActivate?.(a.id, at)}
           badge={companion === a.id ? <CompanionBadge /> : null}
+          playToken={playTokenFor(lastPlayed, playedTimes, a.id)}
         />
       ))}
     </>

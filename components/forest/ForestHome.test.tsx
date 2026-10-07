@@ -8,7 +8,19 @@ const PROFILE = { nickname: "小满", companion: "fox" as const, onboardedAt: 1 
 
 beforeEach(() => {
   useAppStore.setState({ phase: "forest", profile: PROFILE, persistent: true });
-  useForestStore.setState({ companion: "fox", gather: "idle", pending: 0, wanderPaused: false, opened: null, openedAt: null, pendingGame: null });
+  useForestStore.setState({
+    companion: "fox",
+    gather: "idle",
+    pending: 0,
+    wanderPaused: false,
+    opened: null,
+    openedAt: null,
+    pendingGame: null,
+    gameAnimal: null,
+    gameAt: null,
+    lastPlayed: null,
+    playedTimes: 0,
+  });
 });
 
 afterEach(cleanup);
@@ -38,6 +50,17 @@ describe("ForestHome", () => {
     expect(screen.getByRole("heading", { name: "墨墨" })).toBeTruthy();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(useForestStore.getState().opened).toBeNull();
+  });
+
+  it("角色卡点一起玩后挂出游戏面板，回到森林时记下刚玩过的动物", async () => {
+    useForestStore.setState({ opened: "owl" });
+    render(<ForestHome />);
+    fireEvent.click(screen.getByRole("button", { name: /一起玩：事实还是猜测/ }));
+    expect(useForestStore.getState().pendingGame).toBe("fact-or-guess");
+    expect(useForestStore.getState().gameAnimal).toBe("owl");
+    expect(await screen.findByRole("heading", { name: "事实还是猜测" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "回到森林" }));
+    expect(useForestStore.getState().lastPlayed).toBe("owl");
   });
 
   it("存储不可用时提醒这次记不住", () => {

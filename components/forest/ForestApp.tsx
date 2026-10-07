@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactElement } from "react";
+import { DevTools } from "@/components/dev/DevTools";
 import { ClientPaperScene } from "@/components/scene/ClientPaperScene";
 import type { CameraFocus } from "@/components/scene/PaperScene";
 import { ForestAnimals } from "@/components/forest/ForestAnimals";
@@ -35,6 +36,8 @@ export function ForestApp(): ReactElement {
   const companion = useForestStore((s) => s.companion);
   const opened = useForestStore((s) => s.opened);
   const openedAt = useForestStore((s) => s.openedAt);
+  const pendingGame = useForestStore((s) => s.pendingGame);
+  const gameAt = useForestStore((s) => s.gameAt);
   const [entered, setEntered] = useState(false);
 
   useEffect(() => {
@@ -49,11 +52,15 @@ export function ForestApp(): ReactElement {
         openedAt ?? (opened === "tree" ? { x: TREE_HOTSPOT.x, y: TREE_HOTSPOT.y - TREE_HOTSPOT.height / 2, depth: TREE_HOTSPOT.depth } : null);
       return at ? { depth: at.depth, point: { x: at.x, y: at.y }, z: 120, anchorY: 0.4 } : null;
     }
+    // 玩小游戏：镜头继续对着玩游戏的这只动物
+    if (pendingGame && gameAt) {
+      return { depth: gameAt.depth, point: { x: gameAt.x, y: gameAt.y }, z: 140, anchorY: 0.5 };
+    }
     if (gather !== "gathering" && gather !== "seated") return null;
     const center = clearingCenter();
     return { depth: center.depth, point: { x: center.x, y: center.y }, z: 220, anchorY: 0.62,
       keepWidth: { portrait: gatherHalfWidth(companion, "portrait"), landscape: gatherHalfWidth(companion, "landscape") } };
-  }, [phase, entered, gather, companion, opened, openedAt]);
+  }, [phase, entered, gather, companion, opened, openedAt, pendingGame, gameAt]);
 
   if (phase === "loading") return <main className="fixed inset-0 flex items-center justify-center bg-cream"><p role="status" className="text-lg text-ink-soft">森林正在醒来…</p></main>;
 
@@ -61,7 +68,7 @@ export function ForestApp(): ReactElement {
     <main aria-label="解忧森林">
       <ClientPaperScene focus={focus} timeOverride={phase === "onboarding" ? "dawn" : undefined}
         actors={phase === "forest" ? <Actors /> : undefined}
-        overlay={phase === "onboarding" ? <><MorningMist parted={entered} /><Onboarding onEnter={() => setEntered(true)} /></> : <ForestHome />} />
+        overlay={phase === "onboarding" ? <><MorningMist parted={entered} /><Onboarding onEnter={() => setEntered(true)} /></> : <><ForestHome /><DevTools /></>} />
     </main>
   );
 }
