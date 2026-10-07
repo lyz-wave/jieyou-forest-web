@@ -92,3 +92,12 @@
 
 这条 DSH 会话（10-06，turn 35–40）合计 **1142 次**工具调用：turn 35 建仓库名 6 次、turn 36 推送 25 次、turn 37 第 8 组 444 次、turn 38 打开预览 12 次、turn 39 提交推送 12 次、turn 40 第 9–11 组 643 次。迁移进来的 claude-code 历史（10-03 / 10-04，turn 1–34）另有 820 次，整个日志共 1962 次。
 
+## 2026-10-08 · emoji 全清：迷你真纸偶当动物标记
+
+用户看过七版样张后选了第六版「迷你真纸偶」（`docs/mockups/animal-marks-*.png`），并要求「不止是动物标记，所有 emoji 都改一下」。
+
+- 调用数：turn 45（实现与验证）**77 次**——run_code 26、bash 20、read 13、write 9、read_image 5、job_output 3、compress 1；planning（read/grep/glob/compress 这类只读）17 次 = **22%**。上一轮 turn 44（做七版样张）29 次、planning 7%。
+- 返工 **4 次**：① `CharacterCard.tsx` 的 emoji 写的是 `def.emoji` 且没包在 span 里，第一版替换正则没命中，脚本补跑一次；② 新组件的注释里写了 emoji 的名字，被自己新加的「全项目无 emoji」测试逮到，改成文字；③ `HANDOFF.md` 机械删 emoji 后两行读不通（「🌿 / / / 🌱」「开始倾诉按钮 | 开始倾诉」），手工修回；④ 一次 run_code 用模板字符串装 Markdown（正文里有反引号）导致程序解析失败，改成数组拼接。
+- 改动规模：已跟踪文件 **51 个、+96 / −65**（其中 26 个是重跑 E2E 重新生成的截图）；新增文本文件 4 个共 **182 行**（PuppetMark 44、PuppetMark.test 30、PaperGlyph 67、no-emoji.test 41）；决策记录截图 `docs/mockups/` 三张共 932K。
+- 验证：单测 54 文件 375 用例通过；typecheck、lint 零报错；开发服务器 E2E（onboarding / forest-home / games × 手机+桌面 = 24 passed，forest-life 开发用例 10 passed）；生产 E2E 38 passed 并重生成截图；两个视口都看过角色卡、选伙伴、敲树洞、熊抱、落叶漂流。
+

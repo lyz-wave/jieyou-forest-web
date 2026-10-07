@@ -166,9 +166,9 @@ components/
     ForestAnimals.tsx        所有动物的行为调度：平时走动、聚拢、散开（给每只动物下 ActorCommand）
     ForestAnimal.tsx         单只动物：执行指令、接触阴影、水獭水线
     Gathering.tsx (+css)     篝火（夜晚）/ 阳光（白天）纸艺元素
-    GatherControls.tsx       「🍃 开始倾诉」按钮、坐好后的提示纸条和「让大家散开」
+    GatherControls.tsx       「开始倾诉」按钮、坐好后的提示纸条和「让大家散开」
     ForestHome.tsx           森林浮层：欢迎条、今天的伙伴、存储提示、免责声明、角色卡、开始倾诉
-    CharacterCard.tsx        角色卡 / 古树卡内容（含「🌳 我的年轮」占位提示、「我的伙伴」标记）
+    CharacterCard.tsx        角色卡 / 古树卡内容（含「我的年轮」占位提示、「我的伙伴」标记）
     CompanionBadge.tsx       伙伴的小叶子徽记
     TreeSpot.tsx             古树的可点热区（岁岁，perspectiveScale 关掉）
   onboarding/
@@ -290,7 +290,7 @@ openspec/changes/stage1-paper-forest/   第一阶段方案、规格、任务清�
 
 ### 5.4 视差（`hooks/useParallaxInput.ts` + `lib/scene/parallax.ts`）
 
-- 来源选择：`(pointer: fine)` 用鼠标；有 DeviceOrientation 且是触屏时用陀螺仪（以第一次读数为基准，±15° 映射到 ±1）；iOS 需要授权时先自动漂移，并显示「🍃 开启体感」按钮；用户拒绝后记在 localStorage，不再显示按钮
+- 来源选择：`(pointer: fine)` 用鼠标；有 DeviceOrientation 且是触屏时用陀螺仪（以第一次读数为基准，±15° 映射到 ±1）；iOS 需要授权时先自动漂移，并显示「开启体感」按钮；用户拒绝后记在 localStorage，不再显示按钮
 - 自动漂移：周期约 20 秒的李萨如曲线，幅度 0.3
 - 减弱动画时返回常量 0
 - 设备能力用 `useSyncExternalStore` 读取，避免 effect 里调用 setState
@@ -517,7 +517,7 @@ interface PuppetDef {
 | 文件 | 作用 |
 |---|---|
 | `components/forest/ForestHome.tsx` | 森林浮层：欢迎条（昵称 + 今天的伙伴）、存储不可用的提示、`GatherControls`、角色卡、底部免责声明 |
-| `components/forest/CharacterCard.tsx` | 角色卡内容（名字 / 物种 · 思维方式 / 「我的伙伴」/ 简介 / 心理学依据 / 样句 / 「一起玩：X」或「🌳 我的年轮」） |
+| `components/forest/CharacterCard.tsx` | 角色卡内容（名字 / 物种 · 思维方式 / 「我的伙伴」/ 简介 / 心理学依据 / 样句 / 「一起玩：X」或「我的年轮」） |
 | `components/forest/CompanionBadge.tsx` | 伙伴的小叶子徽记（`data-testid="companion-badge"`） |
 | `components/forest/TreeSpot.tsx` | 古树的透明热区：`WorldActor` + `perspectiveScale={false}`，aria-label「岁岁，古树，森林守护者」 |
 | `lib/scene.ts` 的 `TREE_HOTSPOT` | 树冠上的热区（x 0 / y 465 / 340×195 / depth 280），放在树冠是因为树干被啄木鸟、松鼠、猫头鹰占满 |
@@ -598,7 +598,7 @@ interface PuppetDef {
 
 1. 字体按分片加载、**入林之后**首屏也少于 30 个分片（`page.on("request")` 数 `resourceType() === "font"`；原来的 `e2e/prod.spec.ts` 只数了首页）
 2. 森林里做动画的元素都不带 `filter`（同一批选择器 `[data-testid=paper-world], [data-puppet-body], [data-particle], [data-part], [data-layer]`）
-3. 减弱动画（`test.use({ reducedMotion: "reduce" })`）：入林后 `data-parallax="none"`、粒子数量 0、没有「🍃 开启体感」按钮、隔 400ms 两次取样的 `paper-world` transform 完全相同（相机不漂移）、`[data-part] > g` 的 `animationName` 只允许含 `blink`
+3. 减弱动画（`test.use({ reducedMotion: "reduce" })`）：入林后 `data-parallax="none"`、粒子数量 0、没有「开启体感」按钮、隔 400ms 两次取样的 `paper-world` transform 完全相同（相机不漂移）、`[data-part] > g` 的 `animationName` 只允许含 `blink`
 
 **这两个坑别再踩**
 
@@ -631,6 +631,30 @@ interface PuppetDef {
 写之前逐条核对过能力，只写了真的成立的：键盘路径确实可用（`components/games/dnd/Draggable.tsx` 是原生 `<button>`，Tab 聚焦 + 回车选中、到投放区再回车放下），对比度**没有**写成「已达标」——免责声明那行仍是第 8 节的遗留问题。
 
 ---
+
+### 9.7 emoji 全清：迷你真纸偶当动物标记（2026-10-08 已完成）
+
+**为什么**：用户看过七版样张（`docs/mockups/animal-marks-desktop.png`、`animal-marks-mobile.png`、`animal-marks-heads.png`；开发模式样张页 `app/mark-sample/` 用完已删）后选了第六版「迷你真纸偶」，并要求「不止是动物标记，所有 emoji 都改一下」。
+
+**做法**
+- `components/puppet/PaperPuppet.tsx` 把内部的 `PuppetSvg` 导出（形状、纸色、时段明暗、idle 动画都在里面）。
+- 新增 `components/puppet/PuppetMark.tsx`：`<PuppetMark id size />` = 阴影层 + 本体两层 `PuppetSvg`，`aria-hidden`，没有按键、不响应指针；阴影偏移随尺寸走 `max(1, round(size * 0.04))`。
+- 新增 `components/ui/PaperGlyph.tsx`：`<PaperGlyph kind="leaf" | "feather" size />`，叶子与羽毛的纸片图形，随字色（`currentColor`）。
+- `lib/animals.ts` 删掉 `AnimalDef.emoji` 字段与八个值。消费方：`CharacterCard.tsx`（角色卡头部 44px）、`Onboarding.tsx`（选伙伴 22px）、`CastGallery.tsx`（调试抽屉 22px）、`GameShell.tsx`（「正在想…／挠挠头」提示行 16px）。
+- 小游戏里的图形：敲树洞的树 72px、笃笃回复 16px、敲击时飘出的羽毛（PaperGlyph feather 22px）；熊抱的团团 92px 与回复 16px；藏坚果打气 16px；龟壳呼吸的龟 80px 与收尾行 16px；落叶漂流的叶子（PaperGlyph leaf 12px）。
+- 三处按钮与徽记：「开始倾诉」「开启体感」里的叶子 18/13px、「我的年轮」里的小树 18px、伙伴徽记 11px 叶子。
+- 图形全部 `aria-hidden`，所以按钮的无障碍名变干净了：`开始倾诉`、`开启体感`、`我的年轮`——E2E、规格文本、README 共 31 处同步改过。
+- 保留 `✓`（已选伙伴）与 `✕`（关闭）：随字色的排版符号，不是 emoji。
+
+**防回归**
+- 新增 `lib/ui/no-emoji.test.ts`：扫 `components`、`app`、`lib` 的产品源码（跳过 `*.test.*`），出现 emoji 码点就失败，允许集只有 `✓ ✕`。
+- 新增 `components/puppet/PuppetMark.test.tsx`：每只动物与古树都画得出来（aria-hidden、尺寸由 size 决定）、用的是纸偶自己的纸色、自己不产出文字。
+
+**验证（2026-10-08）**
+- 单测 54 文件 375 用例通过（原 52/371，新增 PuppetMark 3 例与 no-emoji 1 例）；typecheck、lint 零报错。
+- 开发服务器 E2E：`onboarding / forest-home / games` 两个视口 24 passed，`forest-life.dev` 两个视口 10 passed（游戏用例把七个小游戏又走了一遍，无障碍名对得上）。
+- 生产 E2E：38 passed，并重新生成 `docs/` 下所有截图；另加 `docs/forest/{mobile,desktop}-character-card.png` 两张角色卡头部，专门看 44px 的标记。
+- 改动规模：已跟踪文件 51 个、+96 / −65（含 26 张重生成的截图）；新增 4 个文本文件共 182 行。
 
 ## 10. 第一阶段实现指南（已完成，留作参考）
 
@@ -736,8 +760,8 @@ export function getForestAI(): ForestAI; // 本阶段返回 mock，第二阶段�
 **前端**
 - `getForestAI()` 换成调用 `/api/*` 的 HTTP 实现，**游戏代码不改**
 - 聚拢坐好后进入倾诉：心情打分（1–10，可跳过）→ 输入（长文本，可选 Web Speech API 语音输入）→ 聆听动画 → 风险检测 → 圆桌
-- 圆桌：伙伴先说；正在说话的动物走到前方放大高亮，头顶气泡打字机出字，标出思维方式；其他动物根据发言的 `mood`（gentle / thinking / playful / excited / calm / serious）做反应；「下一位」「全部显示」；每段的「🍃 说到心里了」
-- 古树总结：古树发光，按 🌿 / 🍃 / 🌳 / 🌱 + 开放式问题的结构
+- 圆桌：伙伴先说；正在说话的动物走到前方放大高亮，头顶气泡打字机出字，标出思维方式；其他动物根据发言的 `mood`（gentle / thinking / playful / excited / calm / serious）做反应；「下一位」「全部显示」；每段的「说到心里了」
+- 古树总结：古树发光，按四档植物意象（草 / 叶 / 树 / 苗）+ 开放式问题的结构
 - 继续对话：默认古树回答；点头像或输入「@名字」由那只动物回答；「让大家再说说」
 - 结束：「🌱 心结解开了」或「先放一放」（第三阶段落地存储）
 
@@ -888,10 +912,10 @@ interface Memory {
 |---|---|
 | 存储不可用 | 森林这次记不住你，关掉页面后需要重新认识哦 |
 | 免责声明 | 解忧森林不能替代专业心理咨询 |
-| 开始倾诉按钮 | 🍃 开始倾诉 |
+| 开始倾诉按钮 | 开始倾诉（叶子是 aria-hidden 的纸片图形） |
 | 坐好后的提示 | 大家都在听啦。倾诉功能下个版本开放（当前代码用的是逗号，见第 8 节第 6 条） |
 | 散开按钮 | 让大家散开 |
-| 年轮入口 / 提示 | 🌳 我的年轮 / 年轮还在生长，过些日子再来看看 |
+| 年轮入口 / 提示 | 我的年轮 / 年轮还在生长，过些日子再来看看 |
 | AI 失败 | 风太大了没听清，能再说一次吗？ / 再试一次 |
 | 敲树洞上限 | 最多选 3 个就好 |
 | 敲树洞「说不清」 | 说不清也没关系，情绪本来就是一团乱麻 |
