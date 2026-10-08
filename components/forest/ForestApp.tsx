@@ -15,6 +15,7 @@ import { clearingCenter, gatherHalfWidth } from "@/lib/forest/gather";
 import { TREE_HOTSPOT } from "@/lib/scene";
 import { useAppStore } from "@/lib/stores/app";
 import { useForestStore } from "@/lib/stores/forest";
+import { useJournalStore } from "@/lib/stores/journal";
 
 /** 3D 世界里的角色：古树热区、聚拢空地、7 只动物 */
 function Actors(): ReactElement {
@@ -43,6 +44,11 @@ export function ForestApp(): ReactElement {
   useEffect(() => {
     void boot().catch((err: unknown) => console.error("森林启动失败", err));
   }, [boot]);
+
+  // 进森林就把年轮读进内存：成长卡片、年轮页和「上次那件事」都从这里来
+  useEffect(() => {
+    void useJournalStore.getState().load();
+  }, []);
 
   const focus = useMemo<CameraFocus | null>(() => {
     if (phase === "onboarding" && entered) return { depth: 280, point: { x: 0, y: 600 }, z: 80, anchorY: 0.6 };

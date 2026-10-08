@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore, type ReactElement } from "react";
 import { devToolsEnabled } from "@/lib/dev";
+import { DemoDataButton } from "./DemoDataButton";
 import { GameContextTray } from "./GameContextTray";
 
 /**
@@ -16,5 +17,10 @@ const getServerSearch = (): string => "";
 export function DevTools(): ReactElement | null {
   const search = useSyncExternalStore(subscribe, getSearch, getServerSearch);
   if (!devToolsEnabled(search, process.env.NODE_ENV)) return null;
-  return <GameContextTray />;
+  return (
+    <>
+      <GameContextTray />
+      <DemoDataButton />
+    </>
+  );
 }

@@ -1,29 +1,30 @@
 "use client";
 
 import { PuppetMark } from "@/components/puppet/PuppetMark";
-import { useState, type ReactElement } from "react";
+import type { ReactElement } from "react";
 import { PopupCard } from "@/components/ui/PopupCard";
 import { ANIMALS, type AnimalId, type CharacterId } from "@/lib/animals";
 
 /**
  * 角色卡：点动物或古树时弹出的纸卡，以底边为轴折起（PopupCard 负责折起动画和关闭）。
  * 内容是名字、物种 · 思维方式、一句话介绍、心理学依据、一句样句，以及一起玩的游戏入口。
- * 古树没有小游戏，换成「我的年轮」——本阶段只给一张纸条提示。
+ * 古树没有小游戏，入口是「我的年轮」——整棵森林攒下来的记录都在那一页。
  */
 export function CharacterCard({
   id,
   companion,
   onClose,
   onPlay,
+  onRings,
 }: {
   id: CharacterId;
   companion?: AnimalId;
   onClose: () => void;
   onPlay?: (gameId: string) => void;
+  onRings?: () => void;
 }): ReactElement {
   const def = ANIMALS[id];
   const game = def.game;
-  const [ringTip, setRingTip] = useState(false);
 
   return (
     <PopupCard open labelledBy="character-card-title" onClose={onClose}>
@@ -52,27 +53,16 @@ export function CharacterCard({
       <p className="mt-4 border-l-2 border-ink-soft/30 pl-3 text-sm leading-6 text-ink-soft">「{def.sample}」</p>
 
       {game ? (
-        <button
-          type="button"
-          onClick={() => onPlay?.(game.id)}
-          className="paper-button mt-5 w-full py-2.5"
-        >
+        <button type="button" onClick={() => onPlay?.(game.id)} className="paper-button mt-5 w-full py-2.5">
           一起玩：{game.name}
         </button>
       ) : (
-        <>
-          <button type="button" onClick={() => setRingTip(true)} className="paper-button mt-5 w-full py-2.5">
-            <span className="inline-flex items-center gap-1.5">
-              <PuppetMark id="tree" size={18} />
-              我的年轮
-            </span>
-          </button>
-          {ringTip && (
-            <p role="status" className="paper-card mt-3 px-3 py-2 text-center text-xs leading-5">
-              年轮还在生长，过些日子再来看看
-            </p>
-          )}
-        </>
+        <button type="button" onClick={() => onRings?.()} className="paper-button mt-5 w-full py-2.5">
+          <span className="inline-flex items-center gap-1.5">
+            <PuppetMark id="tree" size={18} />
+            我的年轮
+          </span>
+        </button>
       )}
     </PopupCard>
   );

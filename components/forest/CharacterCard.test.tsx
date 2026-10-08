@@ -36,12 +36,12 @@ describe("CharacterCard", () => {
     expect(play).toHaveBeenCalledWith("fact-or-guess");
   });
 
-  it("古树卡点「我的年轮」只显示纸条提示，不跳转", () => {
-    render(<CharacterCard id="tree" onClose={() => undefined} />);
+  it("古树卡点「我的年轮」走进年轮页", () => {
+    const rings = vi.fn();
+    render(<CharacterCard id="tree" onClose={() => undefined} onRings={rings} />);
     expect(screen.getByRole("heading", { name: "岁岁" })).toBeTruthy();
-    expect(screen.queryByText("年轮还在生长，过些日子再来看看")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /我的年轮/ }));
-    expect(screen.getByRole("status").textContent).toContain("年轮还在生长，过些日子再来看看");
+    expect(rings).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe("/");
   });
 });

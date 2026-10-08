@@ -4,6 +4,8 @@ import type { ReactElement } from "react";
 import { CharacterCard } from "@/components/forest/CharacterCard";
 import { GatherControls } from "@/components/forest/GatherControls";
 import { GameHost } from "@/components/games/GameHost";
+import { PausedPrompt } from "@/components/forest/PausedPrompt";
+import { RingBrowser } from "@/components/rings/RingBrowser";
 import { TalkFlow } from "@/components/talk/TalkFlow";
 import { ANIMALS, ANIMAL_CAST } from "@/lib/animals";
 import { useAppStore } from "@/lib/stores/app";
@@ -20,6 +22,9 @@ export function ForestHome(): ReactElement {
   const opened = useForestStore((s) => s.opened);
   const closeCard = useForestStore((s) => s.closeCard);
   const startGame = useForestStore((s) => s.startGame);
+  const rings = useForestStore((s) => s.rings);
+  const openRings = useForestStore((s) => s.openRings);
+  const closeRings = useForestStore((s) => s.closeRings);
 
   return (
     <>
@@ -52,8 +57,13 @@ export function ForestHome(): ReactElement {
             // 古树没有游戏，其它都是动物
             if (opened !== "tree") startGame(gameId, opened);
           }}
+          onRings={openRings}
         />
       )}
+
+      {rings && <RingBrowser onClose={closeRings} />}
+
+      <PausedPrompt />
 
       <GameHost />
 

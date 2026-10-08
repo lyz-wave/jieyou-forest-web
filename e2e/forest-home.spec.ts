@@ -271,19 +271,21 @@ test.describe("森林主场景", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
-  test("点古树看岁岁：我的年轮只给提示，不跳转", async ({ page }) => {
+  test("点古树看岁岁：从卡片走进「我的年轮」，还没沉淀过时是空状态", async ({ page }) => {
     await page.goto("/");
     await finishOnboarding(page);
 
-    const url = page.url();
     await openCard(page, "tree-spot");
     const card = page.getByRole("dialog");
     await expect(card.getByRole("heading", { name: "岁岁" })).toBeVisible();
 
     await card.getByRole("button", { name: "我的年轮" }).click();
-    await expect(card.getByRole("status")).toHaveText("年轮还在生长，过些日子再来看看");
-    await expect(card).toBeVisible();
-    expect(page.url()).toBe(url);
+    const rings = page.getByRole("dialog");
+    await expect(rings.getByRole("heading", { name: "我的年轮" })).toBeVisible();
+    await expect(rings.getByRole("status")).toHaveText("你的第一圈年轮，正在生长");
+
+    await page.getByRole("button", { name: "关闭年轮" }).click();
+    await expect(page.getByRole("heading", { name: "我的年轮" })).toHaveCount(0);
   });
 
   test("点开始倾诉：按钮收起来，大家聚拢过来，倾诉流程打开", async ({ page }) => {

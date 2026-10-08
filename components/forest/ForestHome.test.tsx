@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useAppStore } from "@/lib/stores/app";
 import { useForestStore } from "@/lib/stores/forest";
+import { useJournalStore } from "@/lib/stores/journal";
 import { useTalkStore } from "@/lib/stores/talk";
 import { ForestHome } from "./ForestHome";
 
@@ -71,5 +72,14 @@ describe("ForestHome", () => {
     useAppStore.setState({ persistent: false });
     render(<ForestHome />);
     expect(screen.getByText(/森林这次记不住你/)).toBeTruthy();
+  });
+
+  it("古树卡点「我的年轮」走进年轮页，空的时候说第一圈正在生长", () => {
+    useJournalStore.setState({ ready: true, persistent: false, memories: [], paused: null });
+    useForestStore.setState({ opened: "tree", rings: false });
+    render(<ForestHome />);
+    fireEvent.click(screen.getByRole("button", { name: /我的年轮/ }));
+    expect(screen.getByRole("heading", { name: "我的年轮" })).toBeTruthy();
+    expect(screen.getByText("你的第一圈年轮，正在生长")).toBeTruthy();
   });
 });
