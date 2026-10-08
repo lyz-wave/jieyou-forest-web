@@ -88,11 +88,42 @@ async function openRings(page: Page): Promise<void> {
   await expect(page.getByRole("heading", { name: "我的年轮" })).toBeVisible({ timeout: 15_000 });
 }
 
-/** 年轮是一圈纸环，只有描边点得动：量出盒子，点最上面那一点 */
+/**
+ * 纸卡是从底边折起展开的（rotateX -88 -> 0）：等它落定再量、再点，
+ * 否则量到的是压扁的中间帧，算出来的坐标是错的。
+ */
+async function settleCards(page: Page): Promise<void> {
+  await page
+    .waitForFunction(
+      () =>
+        Array.from(document.querySelectorAll(".paper-card")).every((node) => {
+          const transform = getComputedStyle(node).transform;
+          return transform === "none" || transform === "matrix(1, 0, 0, 1, 0, 0)";
+        }),
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch(() => undefined);
+}
+/** 一圈纸：在纸边上找一点确实落在这圈热区上的地方（环的中心是空的，纸上的装饰不接点击） */
 async function clickRing(target: Locator): Promise<void> {
-  const box = await target.boundingBox();
-  if (box === null) throw new Error("量不到这一圈");
-  await target.click({ position: { x: Math.round(box.width / 2), y: 2 } });
+  const page = target.page();
+  await settleCards(page);
+  await target.scrollIntoViewIfNeeded();
+  const point = await target.evaluate((node) => {
+    const box = node.getBoundingClientRect();
+    const hit = node.querySelector("[data-ring-hit]");
+    if (hit === null) return null;
+    const x = Math.round(box.x + box.width / 2);
+    for (let step = 2; step <= 40; step += 1) {
+      const y = Math.round(box.y + step);
+      if (document.elementsFromPoint(x, y)[0] === hit) return { x, y };
+    }
+    return null;
+  });
+  if (point === null) throw new Error("这一圈上没有点得到的纸");
+  // 直接按坐标点：Playwright 的稳定性检查在折起的卡片上会一直等下去
+  await page.mouse.click(point.x, point.y);
 }
 
 test("心结解开了：再打一次分，年轮长出新的一圈，卡片收进年轮里", async ({ page }) => {
@@ -119,7 +150,11 @@ test("心结解开了：再打一次分，年轮长出新的一圈，卡片收�
   await page.getByRole("button", { name: "看看我的年轮" }).click();
   const year = page.getByTestId("ring-year");
   await expect(year).toHaveCount(1);
-  await expect(year).toHaveAttribute("aria-label", /^[0-9]{4} 年，1 条记录$/);
+  // 名字挂在纸上那圈热区上（组是 <g>，读屏读到的是热区）
+  await expect(page.locator('[data-testid="ring-year"] [data-ring-hit]')).toHaveAttribute(
+    "aria-label",
+    /^[0-9]{4} 年，1 条记录$/,
+  );
   await shot(page, "rings-year");
 
   // 年层 → 月层：空着的月份是细线
