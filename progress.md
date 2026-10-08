@@ -151,3 +151,11 @@
 - 验证：提交前在工作树正好等于该提交的状态下跑 `npx vitest run` **87 个文件 641 个用例全过**、`npm run typecheck` 与 `npx eslint .` 零报错；`npx opennextjs-cloudflare build` 成功；`npx wrangler deploy --dry-run` 报 **Total Upload 5274.21 KiB / gzip 1113.57 KiB**；本地 `npx wrangler dev --port 8787` 与线上都验过（首页 200、字体分片 200、`POST /api/risk` 合法入参 503 降级、`{}` 400、未知路径 404，`Worker Startup Time 18 ms`）。
 - 线上：<https://jieyou-forest-web.radiant-hawking.workers.dev>（Version ID `b80e3781-2d9e-4425-8303-05a83db2426b`）。**目前是降级状态**——没设 `ANTHROPIC_API_KEY`，八个接口都回「风太大了没听清」那句；要真的对话得自己跑 `npx wrangler secret put ANTHROPIC_API_KEY`。
 - 备注：数据仍只在浏览器 IndexedDB（按域名分家，线上与 localhost 各一份）；`?dev=1` 在线上也开得出来，但只写访客自己的数据。
+
+## 2026-10-09 · 每 IP 限流与重新发布（同一天，接在部署之后）
+
+用户看完「Key 会去哪儿」的答复后说「可以」，于是给八个接口加了每 IP 限流。
+
+- 做法：新增 `lib/ai/limit.ts`（不加依赖：滑动窗口、模块级共用实例、`__resetLimitForTest`）与 `lib/ai/limit.test.ts`（5 例，先红后绿）；`lib/ai/route.ts` 加 `rateLimited()` / `limitReached()`；八个 `app/api/*/route.ts` 的第一件事都是 `const limited = limitReached(request); if (limited) return limited;`；`lib/ai/routes.test.ts` 加一条 429 用例（并在每个用例前后加 `__resetLimitForTest()`，否则前面的用例会把额度吃掉）。
+- 验证：`npx vitest run` **88 个文件 647 个用例全过**（上轮 87/641）；`npm run typecheck`、`npx eslint .` 零报错；重新发布后线上连打 21 次 `/api/risk`：前 20 次 503、第 21 次起 **429 + `retry-after=57`**。
+- 返工 2 次：① `npm run deploy` 第一次失败在 OpenNext 清理 `.open-next/server-functions/default/node_modules/next` 上（`ENOTEMPTY`），而且我把输出接进了 `| tail`，退出码被 tail 吃掉仍报 0，误以为发布成功 —— 先 `rm -rf .open-next` 再发布（并给命令加 `set -o pipefail`）；② 探针脚本第二次要用新文件名（同一会话里删过的路径会被 FS 守卫拦下）。

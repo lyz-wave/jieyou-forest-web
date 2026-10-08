@@ -101,6 +101,7 @@
 - **年轮改成一盘纸雕之后（2026-10-08）**：`npx vitest run` **86 个文件 617 个用例全部通过**（上轮 85/605）；`npx tsc --noEmit`、`npx eslint .` 零报错；`e2e/rings.spec.ts`（mobile + desktop）通过，`docs/rings/` 的截图重新生成（内圈抬起、纸下见影，见 9.12）
 - **年轮改成剪纸年轮之后（2026-10-09）**：`npx vitest run` **87 个文件 641 个用例全部通过**（上轮 86/617）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E **54 passed (4.1m)**（含 `e2e/rings.spec.ts` 两条 × 两个视口）；`docs/rings/` 16 张截图重生成。
 - **部署到 Cloudflare 之后（2026-10-09）**：`npx opennextjs-cloudflare build` 成功；`npx wrangler deploy --dry-run` 报 gzip **1113.57 KiB**、Worker Startup **18 ms**；本地 `wrangler dev`（8787）与线上都验过：首页 200（标题「解忧森林」、入林页正常、中文字体分片 200）、`POST /api/risk` 合法入参 503 降级、非法入参 400、未知路径 404（见 9.14）
+- **每 IP 限流加上之后（2026-10-09）**：`npx vitest run` **88 个文件 647 个用例全部通过**（上轮 87/641；新增 `lib/ai/limit.test.ts` 5 例与 `routes.test.ts` 的 429 用例）；`npm run typecheck`、`npx eslint .` 零报错；清理 `.open-next` 后重新发布（Version ID `4a65467f-1b89-466a-b0e5-d9da649a6119`，gzip 1114.76 KiB），线上连打 21 次 `/api/risk`：前 20 次 503（线上没设 Key）、第 21 次起 **429 + `retry-after=57`**（见 9.14）
 
 ---
 
@@ -885,6 +886,14 @@ interface PuppetDef {
 1. **线上目前是降级状态**：没有设 `ANTHROPIC_API_KEY`（仓库里没有 `.env*`，用户本地的开发服务器也没这个变量）。要让七只动物真的说话，得自己跑 `npx wrangler secret put ANTHROPIC_API_KEY`（我不经手这个值）。两个模型变量同名同理，可选。
 2. **数据跟着域名走**：IndexedDB 按 origin 分家，`localhost` 上的年轮不会跟着到线上地址，反过来也一样；换自定义域等于又换一份。
 3. **`?dev=1` 在线上也开得出来**（`lib/dev.ts` 的 `devToolsEnabled(search, nodeEnv)` 只认参数），调试抽屉与「生成演示数据」按钮对访客可见 —— 但都只写访客自己浏览器里的数据，不影响别人。要是不想给访客看到，给 `devToolsEnabled` 再加一个域名判断即可。
+**后来又加了一道篱笆（同一天）**：用户问「这个 key 会被暴露吗，安全不」，把 Key 的去向查了一遍（它只出现在服务端一次 fetch 的 `x-api-key` 头上；客户端产物里扫 `ANTHROPIC_API_KEY` / `sk-ant` / `x-api-key` 都是 0 个文件，而同一批产物能扫到「解忧森林」；仓库里只有不含值的 `.dev.vars.example`；报错只抛状态码）之后，顺手加了每 IP 的限流。
+
+`lib/ai/limit.ts`（不加任何依赖）：`LIMIT_RULE = { windowMs: 60_000, max: 20 }`、`MAX_KEYS = 2000`；`createRateLimiter(rule, now)` 是滑动窗口，`check(key)` 给 `{ allowed, retryAfterSec }`；键从 `cf-connecting-ip` 取（退到 `x-forwarded-for` 的第一段，再退到 `local`）；`checkLimit(request)` 用模块级共用的那个实例，`__resetLimitForTest()` 只在测试里用。
+
+`lib/ai/route.ts` 加了 `rateLimited(retryAfterSec)`（429 + `{ ok: false, reason: "rate" }` + `Retry-After`；前端一个字都不用改，`postJson` 对任何非 2xx 都给同一句降级话）与 `limitReached(request)`；八个路由的第一件事都是 `const limited = limitReached(request); if (limited) return limited;` —— 限流排在解析入参之前。
+
+**它挡的是手滑连点与一台机器的滥用，不跨 isolate**（计数器在 Worker 进程内存里，重启归零、不同机房各算各的），所以真正的花钱上限还是去 Anthropic 后台设月度额度，Cloudflare 那边还可以再加一条 Rate limiting 规则。线上实测：从页面里连打 21 次 `/api/risk`，前 20 次 503（没设 Key），第 21 次起 429、`retry-after=57`。
+
 ## 10. 第一阶段实现指南（已完成，留作参考）
 
 第 1 阶段的 63 项已于 2026-10-06 全部完成并通过全量检查（记录见第 9 节）。本节保留当时的做法与验收标准，供第二阶段参考。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
