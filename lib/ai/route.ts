@@ -1,7 +1,10 @@
+import { checkLimit } from "./limit";
+
 /**
  * 四个接口共用的回话方式：成功 { ok: true, data }，其余一律 { ok: false, reason }。
- * 三种失败分得很清楚——400 是前端给的形状不对，503 是这台机器还没配 Key，
- * 502 是模型那边没给出合用的结果。三种前端都走同一句降级文案。
+ * 四种失败分得很清楚——400 是前端给的形状不对，503 是这台机器还没配 Key，
+ * 502 是模型那边没给出合用的结果，429 是同一个 IP 一分钟刷太多（见 limit.ts）。
+ * 四种前端都走同一句降级文案。
  *
  * 这里没有一行日志：用户写的话是隐私，不进日志。
  */
@@ -23,6 +26,18 @@ export function unavailable(): Response {
 
 export function upstream(): Response {
   return jsonResponse(502, { ok: false, reason: "upstream" });
+}
+
+/** 同一个 IP 一分钟刷太多：429 加 Retry-After，前端和别的失败一样走降级文案 */
+export function rateLimited(retryAfterSec: number): Response {
+  const response = jsonResponse(429, { ok: false, reason: "rate" });
+  response.headers.set("retry-after", String(retryAfterSec));
+  return response;
+}
+
+export function limitReached(request: Request): Response | null {
+  const verdict = checkLimit(request);
+  return verdict.allowed ? null : rateLimited(verdict.retryAfterSec);
 }
 
 export async function readJson(request: Request): Promise<unknown> {

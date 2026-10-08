@@ -10,6 +10,7 @@ import { POST as memoryPost } from "@/app/api/memory/route";
 import { POST as summaryPost } from "@/app/api/summary/route";
 import type { ServerAi } from "./anthropic";
 import type { Speech, TreeSummary } from "./schema";
+import { __resetLimitForTest, LIMIT_RULE } from "./limit";
 import { __resetServerAIForTest, __setServerAIForTest } from "./server";
 
 const context = { nickname: "小满", companion: "fox", text: "他两天没回我消息，他一定讨厌我了" };
@@ -81,10 +82,12 @@ async function callRoute(url: keyof typeof ROUTES, body: unknown): Promise<{ sta
 describe("四个接口", () => {
   beforeEach(() => {
     __resetServerAIForTest();
+    __resetLimitForTest();
   });
 
   afterEach(() => {
     __resetServerAIForTest();
+    __resetLimitForTest();
     vi.restoreAllMocks();
   });
 
@@ -183,4 +186,35 @@ describe("四个接口", () => {
     expect(printed).not.toContain("我不想活了");
     expect(printed).not.toContain("秘密");
   });
+
+  it("同一个 IP 一分钟刷太多：429 带上 Retry-After，一次都不问模型", async () => {
+    let calls = 0;
+    __setServerAIForTest(fakeAI({ risk: async () => { calls += 1; return { risk: "none" }; } }));
+    const post = async (): Promise<Response> =>
+      riskPost(
+        new Request("http://localhost/api/risk", {
+          method: "POST",
+          headers: { "content-type": "application/json", "cf-connecting-ip": "1.1.1.1" },
+          body: JSON.stringify({ text: "今天有点累" }),
+        }),
+      );
+    for (let i = 0; i < LIMIT_RULE.max; i += 1) {
+      expect((await post()).status).toBe(200);
+    }
+    const blocked = await post();
+    expect(blocked.status).toBe(429);
+    expect(await blocked.json()).toEqual({ ok: false, reason: "rate" });
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
+    expect(calls).toBe(LIMIT_RULE.max);
+    // 换一个 IP 立刻就能进，挡的不是所有人
+    const other = await riskPost(
+      new Request("http://localhost/api/risk", {
+        method: "POST",
+        headers: { "content-type": "application/json", "cf-connecting-ip": "2.2.2.2" },
+        body: JSON.stringify({ text: "今天有点累" }),
+      }),
+    );
+    expect(other.status).toBe(200);
+  });
+
 });
