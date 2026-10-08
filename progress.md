@@ -140,3 +140,14 @@
 - 改动规模：已跟踪文件 **57 个、+634 / −184**（含 docs/rings 16 张截图重生成）；新增未跟踪文件 2 个：`lib/rings/paper.ts`、`lib/rings/paper.test.ts`（手剪几何与打包层高，19 例测试）。
 - 验证：`npx vitest run` **87 个文件 641 个用例全过**（上轮 86/617）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E `PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test --config=playwright.prod.config.ts` **54 passed (4.1m)**（含 `e2e/rings.spec.ts` 两条 × 两个视口）；看图自检 `docs/rings/` 的年层、月层、日层（mobile 与 desktop）。
 - 未提交：这批改动（`lib/rings/paper.ts`、`RingBrowser.tsx` 的剪纸重做、README/HANDOFF、截图）仍停在工作区，远端 origin/main 是 `6607bff`。
+
+## 2026-10-09 · 部署到 Cloudflare Workers
+
+用户问「部署到 cloudflare 上以后开发时候修改麻烦吗」，看过一版对比之后说「先提交然后部署到cloudflare上」。这一轮先提交上一年轮的剪纸改动（三个提交 `6bd4c50` → `60770d3` 已推 origin/main），再按 Cloudflare 官方的 OpenNext 适配器把整站部署上去。
+
+- 调用数：turn 63 **42 次**（run_code 14｜read 10｜web_fetch 7｜web_call 3｜grep 2｜write 2｜bash 1｜job_output 1｜compress 1｜validate_dsh_ui 1），planning（读官方文档与研究）23 次 = **55%**；turn 64 **107 次**（run_code 33｜bash 27｜read 18｜write 10｜job_output 8｜edit 5｜web_fetch 2｜job_list 1｜todo_write 1｜job_kill 1｜read_image 1｜compress 1，统计时点在提交之前），planning 22 次 = **21%**｜写盘 15 次 = 14%｜验证类 bash 10 次 = 9%。
+- 返工 **4 次**：① 提交前的验证脚本跑 `npx eslint .` 时把刚构建出来的 `.open-next/**` 也扫了（23076 个问题、548 个 error），给 `eslint.config.mjs` 的 `globalIgnores` 加上 `.open-next/**` 与 `.wrangler/**`；② HANDOFF 用 `tools.read`（不分页）只回了 560/1148 行——按体量静默截断——差点又 read+write 回写把文件截掉，改成「python 按行定位 + 精确替换」；③ run_code 的 TS 字符串里带连接号的长锚点 `count=0`（字符不一致），改成「按行 startswith 定位、整行替换」，不再依赖长锚点；④ bash 里的 curl 访问公网一律 000（只有 localhost 通），线上复核改用 Playwright 脚本，而且脚本必须放进项目里（放 /tmp 会 `ERR_MODULE_NOT_FOUND`，解析不到 `playwright`）。
+- 改动规模（第 4 个提交 `5a4aaa3`）：已跟踪文件 5 个 + 1（`eslint.config.mjs`）——`.gitignore` +5、`HANDOFF.md` +30、`README.md` +18、`package.json` +6、`eslint.config.mjs` +4、`package-lock.json`（wrangler 与 @opennextjs/cloudflare 的依赖树，占 `+12140 / −5849` 里绝大部分）；新增 `wrangler.jsonc`（17 行）、`open-next.config.ts`（5 行）、`.dev.vars.example`（5 行）。
+- 验证：提交前在工作树正好等于该提交的状态下跑 `npx vitest run` **87 个文件 641 个用例全过**、`npm run typecheck` 与 `npx eslint .` 零报错；`npx opennextjs-cloudflare build` 成功；`npx wrangler deploy --dry-run` 报 **Total Upload 5274.21 KiB / gzip 1113.57 KiB**；本地 `npx wrangler dev --port 8787` 与线上都验过（首页 200、字体分片 200、`POST /api/risk` 合法入参 503 降级、`{}` 400、未知路径 404，`Worker Startup Time 18 ms`）。
+- 线上：<https://jieyou-forest-web.radiant-hawking.workers.dev>（Version ID `b80e3781-2d9e-4425-8303-05a83db2426b`）。**目前是降级状态**——没设 `ANTHROPIC_API_KEY`，八个接口都回「风太大了没听清」那句；要真的对话得自己跑 `npx wrangler secret put ANTHROPIC_API_KEY`。
+- 备注：数据仍只在浏览器 IndexedDB（按域名分家，线上与 localhost 各一份）；`?dev=1` 在线上也开得出来，但只写访客自己的数据。
