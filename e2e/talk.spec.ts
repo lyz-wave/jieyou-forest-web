@@ -28,6 +28,18 @@ const SUMMARY = {
 
 const REPLY = { speaker: "owl", text: "那就从最小的一步开始，先写一行。" };
 
+/** 沉淀：模型给的那几样（帮助最大的动物与两次心情分由客户端补） */
+const MEMORY = {
+  title: "汇报搞砸了",
+  summary: "一次汇报没做好，就觉得自己整个人不行。",
+  emotions: ["委屈", "疲惫"],
+  themes: ["工作压力"],
+  coreBelief: "我不行",
+  shift: { from: "我整个人不行", to: "一次没做好" },
+  insight: "我可以做得不好，也还是我。",
+  action: "明天先写三行提纲",
+};
+
 const ok = (route: Route, data: unknown): Promise<void> =>
   route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, data }) });
 
@@ -37,6 +49,7 @@ async function serveAll(page: Page): Promise<void> {
   await page.route("**/api/summary", (route) => ok(route, SUMMARY));
   await page.route("**/api/reply", (route) => ok(route, REPLY));
   await page.route("**/api/risk", (route) => ok(route, { risk: "none" }));
+  await page.route("**/api/memory", (route) => ok(route, MEMORY));
 }
 
 /** 打开倾诉流程：打分那一屏出来才算打开 */
@@ -129,8 +142,12 @@ test("从开始倾诉走完一轮：圆桌、总结、追问，最后回到森�
   await page.getByRole("button", { name: "说出去" }).click();
   await expect(page.getByTestId("talk-reply")).toContainText("先写一行", { timeout: 20_000 });
 
-  // 收尾：回森林（大家先散开，走回自己的位置），气泡和光都不见了
+  // 收尾：心结解开了 → 再打一次分 → 沉淀 → 成长卡片 → 回森林（大家散开，气泡和光都不见了）
   await page.getByRole("button", { name: "心结解开了" }).click();
+  await expect(page.getByRole("heading", { name: "现在心里松一点了吗？" })).toBeVisible({ timeout: 10_000 });
+  await page.getByRole("button", { name: "跳过打分" }).click();
+  await expect(page.getByTestId("growth-card")).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: "收好，回到森林" }).click();
   await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("talk-bubble")).toHaveCount(0);
   await expect(page.getByTestId("speaking-glow")).toHaveCount(0);
