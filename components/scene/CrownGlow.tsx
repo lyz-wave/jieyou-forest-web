@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { ancientTree } from "@/lib/scene";
+import { useTalkStore } from "@/lib/stores/talk";
 import { STAGE_H, STAGE_W } from "@/lib/scene/depth";
 
 const TREE = ancientTree();
@@ -11,6 +12,8 @@ const TREE = ancientTree();
  * 静态 SVG，颜色由 --paper-glow 控制（白天为透明）。
  */
 export const CrownGlow = memo(function CrownGlow() {
+  // 古树总结的时候，树冠自己在发光（白天也亮）
+  const glowing = useTalkStore((s) => s.phase === "summary");
   return (
     <svg
       className="absolute inset-0 h-full w-full"
@@ -26,7 +29,12 @@ export const CrownGlow = memo(function CrownGlow() {
         </radialGradient>
       </defs>
       {/* 光只铺在树冠形状里，避免从树冠外漏光；白天 --paper-glow 透明，整个元素也隐藏 */}
-      <path d={TREE.crown} fill="url(#crown-glow)" style={{ opacity: "var(--crown-glow-on, 0)" }} />
+      <path
+        d={TREE.crown}
+        fill="url(#crown-glow)"
+        data-testid={glowing ? "tree-glow" : undefined}
+        style={{ opacity: glowing ? 1 : "var(--crown-glow-on, 0)" }}
+      />
     </svg>
   );
 });

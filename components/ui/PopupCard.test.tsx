@@ -22,6 +22,14 @@ describe("PopupCard", () => {
     trigger.remove();
   });
 
+  it("打开后马上把焦点点进卡片里，延迟的自动聚焦不会抢走", async () => {
+    render(<PopupCard open><button data-autofocus>第一个</button><input aria-label="想说的话" /></PopupCard>);
+    const input = screen.getByLabelText("想说的话");
+    input.focus();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    expect(input).toHaveFocus();
+  });
+
   it("Tab 和 Shift+Tab 都留在对话框里", async () => {
     render(<PopupCard open><button data-autofocus>第一个</button><button>最后一个</button></PopupCard>);
     const first = screen.getByRole("button", { name: "第一个" });

@@ -6,16 +6,18 @@ import styles from "./Particles.module.css";
 
 /**
  * 落叶、光斑、萤火虫。全部是 DOM + CSS 关键帧，只动 transform / opacity。
- * 页面隐藏时暂停；减弱动画时不渲染。
+ * 页面隐藏、或有人在倾诉时暂停；减弱动画时不渲染。
  */
 export const Particles = memo(function Particles({
   count,
   night,
   reducedMotion,
+  quiet = false,
 }: {
   count: number;
   night: boolean;
   reducedMotion: boolean;
+  quiet?: boolean;
 }) {
   const particles = useMemo(() => makeParticles(count, night), [count, night]);
   const [hidden, setHidden] = useState(false);
@@ -28,12 +30,14 @@ export const Particles = memo(function Particles({
 
   if (reducedMotion) return null;
 
+  const stopped = hidden || quiet;
+
   return (
     <div
       data-testid="particles"
-      data-paused={hidden}
+      data-paused={stopped}
       aria-hidden
-      className={`pointer-events-none absolute inset-0 overflow-hidden ${hidden ? styles.paused : ""}`}
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${stopped ? styles.paused : ""}`}
     >
       {particles.map((p, i) => {
         const vars = {

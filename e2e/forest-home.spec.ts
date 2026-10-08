@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { finishOnboarding } from "./helpers";
+import { finishOnboarding, settleCamera } from "./helpers";
 
 const MIN_TAP = 44;
 
@@ -62,8 +62,20 @@ async function hotspotBox(page: Page, id: string): Promise<Hotspot> {
  * 森林一直在动（相机漂移 + 动物走动），Playwright 的稳定性检查等不到「元素不动」，只能自己量。
  */
 async function tapActor(page: Page, id: string): Promise<void> {
+  await settleCamera(page);
   const box = await hotspotBox(page, id);
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+/**
+ * 点开角色卡：上面那一下可能还是落在空处（镜头在动、动物在走），没开出来就再点一次。
+ */
+async function openCard(page: Page, id: string): Promise<void> {
+  const card = page.getByRole("dialog");
+  await expect(async () => {
+    if ((await card.count()) === 0) await tapActor(page, id);
+    await expect(card).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
 }
 
 /** 纸偶自己的按钮盒子，和补过以后的完整热区（屏幕上本来就够大时两者一样大） */
@@ -210,7 +222,7 @@ test.describe("森林主场景", () => {
     await expect(page.getByTestId("animal-fox").getByTestId("companion-badge")).toBeVisible();
     await expect(page.getByTestId("animal-owl").getByTestId("companion-badge")).toHaveCount(0);
 
-    await tapActor(page, "animal-fox");
+    await openCard(page, "animal-fox");
     const card = page.getByRole("dialog");
     await expect(card.getByRole("heading", { name: "阿橘" })).toBeVisible();
     await expect(card.getByText("我的伙伴", { exact: true })).toBeVisible();
@@ -221,7 +233,7 @@ test.describe("森林主场景", () => {
     await finishOnboarding(page);
 
     const owl = page.getByTestId("animal-owl").locator("button");
-    await tapActor(page, "animal-owl");
+    await openCard(page, "animal-owl");
 
     const card = page.getByRole("dialog");
     await expect(card).toBeVisible();
@@ -248,12 +260,12 @@ test.describe("森林主场景", () => {
     await page.goto("/");
     await finishOnboarding(page);
 
-    await tapActor(page, "animal-owl");
+    await openCard(page, "animal-owl");
     await page.getByRole("button", { name: "关闭" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
     const size = page.viewportSize() ?? { width: 0, height: 0 };
-    await tapActor(page, "animal-owl");
+    await openCard(page, "animal-owl");
     await expect(page.getByRole("dialog")).toBeVisible();
     await page.mouse.click(size.width - 6, Math.round(size.height * 0.45));
     await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -264,7 +276,7 @@ test.describe("森林主场景", () => {
     await finishOnboarding(page);
 
     const url = page.url();
-    await tapActor(page, "tree-spot");
+    await openCard(page, "tree-spot");
     const card = page.getByRole("dialog");
     await expect(card.getByRole("heading", { name: "岁岁" })).toBeVisible();
 
@@ -274,7 +286,7 @@ test.describe("森林主场景", () => {
     expect(page.url()).toBe(url);
   });
 
-  test("点开始倾诉：按钮收起来，大家聚拢过来", async ({ page }) => {
+  test("点开始倾诉：按钮收起来，大家聚拢过来，倾诉流程打开", async ({ page }) => {
     await page.goto("/");
     await finishOnboarding(page);
 
@@ -283,7 +295,9 @@ test.describe("森林主场景", () => {
     const box = await hotspotBox(page, "start-gather");
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await expect(start).toHaveCount(0);
-    await expect(page.getByRole("status")).toHaveText("大家都在听啦，倾诉功能下个版本开放", { timeout: 45_000 });
+    // 第二阶段起，按钮按下去会直接打开倾诉流程（打分 → 说给它听）
+    await expect(page.getByRole("heading", { name: "想说点什么？" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("大家都在古树前坐好了")).toBeVisible({ timeout: 45_000 });
   });
 
   test("视差推到最大时纸层不露边", async ({ page }, testInfo) => {
@@ -337,8 +351,17 @@ test.describe("森林主场景", () => {
         await page.mouse.move(dir.point?.[0] ?? 0, dir.point?.[1] ?? 0);
       }
       await settle(page);
+      // settle 只看「两次取样一样」，页面被节流时会误判成停稳；这里直接等它真的推到位再断言
+      await expect
+        .poll(
+          async () => {
+            const s = await cameraShift(page);
+            return Math.hypot(s.x, s.y);
+          },
+          { message: `视差没推到最大（${dir.name}）`, timeout: 10_000 },
+        )
+        .toBeGreaterThan(25);
       const shift = await cameraShift(page);
-      expect(Math.hypot(shift.x, shift.y), `视差没推到最大（${dir.name}）：相机只挪了 ${shift.x.toFixed(1)},${shift.y.toFixed(1)}`).toBeGreaterThan(25);
       // 两个轴可以同时推满，所以逐轴比（hypot 的极限是 PARALLAX_MAX*√2）
       expect(Math.abs(shift.x), `${dir.name}的横向偏移超了`).toBeLessThanOrEqual(PARALLAX_MAX + 1);
       expect(Math.abs(shift.y), `${dir.name}的纵向偏移超了`).toBeLessThanOrEqual(PARALLAX_MAX + 1);

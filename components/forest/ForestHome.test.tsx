@@ -2,9 +2,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useAppStore } from "@/lib/stores/app";
 import { useForestStore } from "@/lib/stores/forest";
+import { useTalkStore } from "@/lib/stores/talk";
 import { ForestHome } from "./ForestHome";
 
-const PROFILE = { nickname: "小满", companion: "fox" as const, onboardedAt: 1 };
+const PROFILE = { nickname: "小满", companion: "fox" as const, onboardedAt: 1, selfPicks: [] };
 
 beforeEach(() => {
   useAppStore.setState({ phase: "forest", profile: PROFILE, persistent: true });
@@ -21,6 +22,8 @@ beforeEach(() => {
     lastPlayed: null,
     playedTimes: 0,
   });
+  // 倾诉流程是全局状态：上一个用例点过「开始倾诉」就会留着
+  useTalkStore.getState().finish();
 });
 
 afterEach(cleanup);
@@ -34,11 +37,12 @@ describe("ForestHome", () => {
     expect(screen.getByText("解忧森林不能替代专业心理咨询")).toBeTruthy();
   });
 
-  it("点开始倾诉触发聚拢，按钮换成提示纸条", () => {
+  it("点开始倾诉触发聚拢，按钮换成提示纸条，同时打开倾诉流程", () => {
     render(<ForestHome />);
     fireEvent.click(screen.getByRole("button", { name: /开始倾诉/ }));
     expect(useForestStore.getState().gather).toBe("gathering");
     expect(useForestStore.getState().pending).toBe(7);
+    expect(useTalkStore.getState().phase).toBe("mood");
   });
 
   it("没有卡片时不渲染对话框，打开后显示角色卡", () => {

@@ -14,6 +14,7 @@ import { clampCamera, focusCamera, maxZoomToFit, stageRect, type StagePoint } fr
 import { LIGHTING, lightingCssVars } from "@/lib/scene/lighting";
 import { QUALITY_SETTINGS } from "@/lib/scene/quality";
 import { useSceneStore } from "@/lib/stores/scene";
+import { useTalkStore } from "@/lib/stores/talk";
 import { CrownGlow } from "./CrownGlow";
 import { PaperLayer } from "./PaperLayer";
 import { PaperTexture } from "./PaperTexture";
@@ -102,6 +103,8 @@ export function PaperScene({
 }) {
   const vp = useViewportSize();
   const currentTime = useTimeOfDay();
+  // 有人在倾诉：纸屑停下来，森林安静地听
+  const talking = useTalkStore((s) => s.phase !== "away");
   const time = timeOverride ?? currentTime;
   const reducedMotion = useReducedMotion();
   const quality = useSceneStore((s) => s.quality);
@@ -170,8 +173,13 @@ export function PaperScene({
             className="pointer-events-none absolute inset-0 transition-[background-color] duration-[3000ms]"
             style={{ backgroundColor: "var(--paper-tint)" }}
           />
-          <Particles count={settings.particles} night={lighting.fireflies} reducedMotion={reducedMotion} />
-          {overlay}
+          <Particles
+            count={settings.particles}
+            night={lighting.fireflies}
+            reducedMotion={reducedMotion}
+            quiet={talking}
+          />
+          {/* 对话/角色卡要盖在这一层上面：同一个 z，靠 DOM 顺序，所以按钮写在 overlay 前面 */}
           {parallax.canRequestPermission && (
             <button
               type="button"
@@ -185,6 +193,7 @@ export function PaperScene({
               </span>
             </button>
           )}
+          {overlay}
         </SceneContext.Provider>
       )}
       <PaperTexture />

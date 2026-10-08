@@ -6,9 +6,12 @@ import type { AnimalDef, AnimalId } from "@/lib/animals";
 import { gatherSeats } from "@/lib/forest/gather";
 import type { WorldPos } from "@/lib/forest/ground";
 import { playTokenFor } from "@/lib/forest/play";
+import { podiumPlan } from "@/lib/forest/podium";
 import { createWanderScheduler } from "@/lib/forest/scheduler";
 import { TERRITORIES } from "@/lib/forest/territory";
+import { gestureFor, reactionPlan } from "@/lib/talk/gesture";
 import { useForestStore } from "@/lib/stores/forest";
+import { useTalkStore } from "@/lib/stores/talk";
 import { CompanionBadge } from "./CompanionBadge";
 import { ForestAnimal, type ActorCommand } from "./ForestAnimal";
 
@@ -16,6 +19,9 @@ type Cast = (AnimalDef & { id: AnimalId })[];
 
 /** 聚拢 / 散开时每只动物最多走多久（秒） */
 const GATHER_MAX_SECONDS = 5;
+
+/** 谁发言时从座位走到大家前面，最多走这么久（秒） */
+const SPEAK_MAX_SECONDS = 3;
 
 /**
  * 管理森林里所有动物的行为：
@@ -33,6 +39,11 @@ export function ForestAnimals({
   const { layout, reducedMotion } = useScene();
   const companion = useForestStore((s) => s.companion);
   const gather = useForestStore((s) => s.gather);
+  const phase = useTalkStore((s) => s.phase);
+  const talking = phase !== "away";
+  const speaker = useTalkStore((s) => s.speaker);
+  const shown = useTalkStore((s) => s.shown);
+  const bubble = useTalkStore((s) => s.bubble);
   const wanderPaused = useForestStore((s) => s.wanderPaused);
   const lastPlayed = useForestStore((s) => s.lastPlayed);
   const playedTimes = useForestStore((s) => s.playedTimes);
@@ -43,6 +54,11 @@ export function ForestAnimals({
   /** 每只动物现在在领地里的哪个锚点 */
   const anchorIndex = useRef<Partial<Record<AnimalId, number>>>({});
   const ids = useMemo(() => cast.map((a) => a.id), [cast]);
+  /** 圆桌上别人说话时，其余每一只轮着点头 / 思考 / 笑（发言的那只不排） */
+  const reactions = useMemo(
+    () => reactionPlan(ids, phase === "roundtable" ? speaker : null, shown),
+    [ids, phase, speaker, shown],
+  );
 
   const send = useCallback((id: AnimalId, cmd: Omit<ActorCommand, "id">) => {
     const command = { ...cmd, id: nextId.current++ };
@@ -71,11 +87,24 @@ export function ForestAnimals({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gather]);
 
+  // 发言：说话的那只走到大家前面，说完回自己的座位（换人时前一只也会被送回去）
+  useEffect(() => {
+    if (gather !== "seated") return;
+    const seats = gatherSeats(companion, layout);
+    const plan = podiumPlan(seats, speaker);
+    if (!plan) return;
+    const seat = seats[plan.speaker];
+    send(plan.speaker, { to: plan.to, facing: plan.facing, maxDuration: SPEAK_MAX_SECONDS });
+    return () => {
+      send(plan.speaker, { to: seat.pos, facing: seat.facing, maxDuration: SPEAK_MAX_SECONDS });
+    };
+  }, [speaker, gather, companion, layout, send]);
+
   // 平时走动
   const wanderingId = useRef<{ animal: AnimalId; command: number } | null>(null);
   const scheduler = useRef<ReturnType<typeof createWanderScheduler> | null>(null);
   useEffect(() => {
-    if (reducedMotion || gather !== "idle" || wanderPaused) {
+    if (reducedMotion || gather !== "idle" || wanderPaused || talking) {
       scheduler.current?.pause();
       return;
     }
@@ -93,7 +122,7 @@ export function ForestAnimals({
       wanderingId.current = { animal: pick, command: send(pick, { to: anchors[next] }) };
     }, 500);
     return () => window.clearInterval(timer);
-  }, [reducedMotion, gather, wanderPaused, ids, layout, send]);
+  }, [reducedMotion, gather, wanderPaused, talking, ids, layout, send]);
 
   const onArrive = useCallback(
     (id: AnimalId, commandId: number) => {
@@ -120,6 +149,10 @@ export function ForestAnimals({
           onActivate={(at) => onActivate?.(a.id, at)}
           badge={companion === a.id ? <CompanionBadge /> : null}
           playToken={playTokenFor(lastPlayed, playedTimes, a.id)}
+          speaking={speaker === a.id && phase === "roundtable"}
+          bubble={speaker === a.id ? bubble : null}
+          gesture={gestureFor(phase, a.id, reactions)}
+          gestureLoop={phase === "listening"}
         />
       ))}
     </>

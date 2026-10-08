@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { CharacterCard } from "@/components/forest/CharacterCard";
 import { GatherControls } from "@/components/forest/GatherControls";
 import { GameHost } from "@/components/games/GameHost";
+import { TalkFlow } from "@/components/talk/TalkFlow";
 import { ANIMALS, ANIMAL_CAST } from "@/lib/animals";
 import { useAppStore } from "@/lib/stores/app";
 import { useForestStore } from "@/lib/stores/forest";
@@ -55,6 +56,8 @@ export function ForestHome(): ReactElement {
       )}
 
       <GameHost />
+
+      <TalkFlow />
 
       <p className="pointer-events-none absolute inset-x-0 bottom-1 z-20 text-center text-[10px] text-cream">
         解忧森林不能替代专业心理咨询

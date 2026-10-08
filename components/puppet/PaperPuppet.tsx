@@ -1,9 +1,11 @@
 "use client";
 
 import { motion, useAnimate, useMotionValue, useTransform } from "motion/react";
-import { forwardRef, useImperativeHandle, type CSSProperties, type ReactNode } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, type CSSProperties, type ReactNode } from "react";
 import { useActorTapPad } from "@/components/scene/ActorContext";
+import { gestureMoves, gestureTiming } from "@/lib/puppet/gesture";
 import { idleDelay, idleSteps, type GaitRole, type PuppetDef, type PuppetPart } from "@/lib/puppet/types";
+import type { Gesture } from "@/lib/talk/gesture";
 import styles from "./PaperPuppet.module.css";
 
 export interface PuppetHandle {
@@ -148,6 +150,10 @@ export const PaperPuppet = forwardRef<
     reducedMotion: boolean;
     facing?: "left" | "right";
     pose?: string;
+    /** 聆听 / 别人说话时的小动作（点头、竖耳朵、托腮、思考、笑） */
+    gesture?: Gesture | null;
+    /** 反复轻轻做（聆听时用），默认只做一次 */
+    gestureLoop?: boolean;
     /** 泡在水里（只对有 waterline 的纸偶生效） */
     submerged?: boolean;
     onActivate?: () => void;
@@ -156,7 +162,20 @@ export const PaperPuppet = forwardRef<
     className?: string;
   }
 >(function PaperPuppet(
-  { def, label, shadow, reducedMotion, facing = def.facing, pose = "idle", submerged = false, onActivate, badge, className },
+  {
+    def,
+    label,
+    shadow,
+    reducedMotion,
+    facing = def.facing,
+    pose = "idle",
+    gesture = null,
+    gestureLoop = false,
+    submerged = false,
+    onActivate,
+    badge,
+    className,
+  },
   ref,
 ) {
   const [scope, animate] = useAnimate<HTMLButtonElement>();
@@ -187,12 +206,36 @@ export const PaperPuppet = forwardRef<
     [animate, scope, def, reducedMotion],
   );
 
+  // 小动作：换一个动作才播一次；找不到对应部件就退回头部点头
+  const lastGesture = useRef<Gesture | null>(null);
+  useEffect(() => {
+    if (!gesture || gesture === lastGesture.current) return;
+    lastGesture.current = gesture;
+    if (reducedMotion) return;
+    const root = scope.current;
+    if (!root) return;
+    const timing = gestureTiming(gestureLoop);
+    const play = (moves: readonly { part: string; keyframes: Record<string, number[] | undefined> }[]): void => {
+      for (const move of moves) {
+        const body = move.part === "" ? root.querySelector<HTMLElement>("[data-puppet-body]") : null;
+        const found = body ? [body] : [...root.querySelectorAll<SVGGElement>(`[data-part^="${move.part}"]`)];
+        for (const element of found) void animate(element, move.keyframes, timing);
+      }
+    };
+    const moves = gestureMoves(gesture);
+    const grounded = moves.filter((move) =>
+      move.part === "" ? root.querySelector("[data-puppet-body]") !== null : root.querySelector(`[data-part^="${move.part}"]`) !== null,
+    );
+    play(grounded.length > 0 ? grounded : gestureMoves("nod"));
+  }, [gesture, gestureLoop, reducedMotion, animate, scope]);
+
   return (
     <button
       ref={scope}
       type="button"
       aria-label={label}
       data-pose={pose}
+      data-gesture={gesture ?? "none"}
       data-facing={facing}
       onClick={() => onActivate?.()}
       className={`group pointer-events-auto relative block h-full w-full cursor-pointer rounded-[40%] outline-offset-4 ${className ?? ""}`}

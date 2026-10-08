@@ -38,6 +38,9 @@ export function PopupCard({
     returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // 等折起动画开始后再聚焦，避免屏幕阅读器读到半折的卡片
     const t = window.setTimeout(() => {
+      // 用户已经自己点进卡片里了（比如一打开就开始打字），别把焦点抢走
+      const active = document.activeElement;
+      if (active && active !== card.current && card.current?.contains(active)) return;
       const target = card.current?.querySelector<HTMLElement>("[data-autofocus]") ?? card.current;
       target?.focus();
     }, 50);

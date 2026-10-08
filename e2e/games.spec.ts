@@ -1,5 +1,31 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 import { finishOnboarding, tapActor } from "./helpers";
+
+/** 三个小游戏接口的假回复：E2E 不打真实模型，也用不着 API Key（跟 talk.spec.ts 一个路子） */
+const SPLIT = {
+  bubbles: [
+    { id: "b1", text: "他两天没回我消息", answer: "fact" },
+    { id: "b2", text: "他一定讨厌我了", answer: "guess", trap: "mind-reading" },
+  ],
+};
+
+const REFRAME = {
+  versions: [
+    { kind: "humor", text: "我给自己打了个差评，还顺手点了收藏。" },
+    { kind: "warm", text: "这次没做好，我还是那个想把下一次做好的人。" },
+    { kind: "realistic", text: "汇报里有两页没过，别的部分还在。" },
+  ],
+};
+
+const BREAKDOWN = { steps: ["先把提纲列出来", "再补两页数据", "明天读一遍就发出去"] };
+
+async function stubGames(page: Page): Promise<void> {
+  const ok = (route: Route, data: unknown): Promise<void> =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, data }) });
+  await page.route("**/api/split-thought", (route) => ok(route, SPLIT));
+  await page.route("**/api/reframe", (route) => ok(route, REFRAME));
+  await page.route("**/api/break-down", (route) => ok(route, BREAKDOWN));
+}
 
 /** 玩完一盘以后 gameContext 里该出现的开头，按玩的顺序 */
 const CONTEXT_PREFIXES = [
@@ -19,16 +45,29 @@ async function shot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: `docs/games/${test.info().project.name}-${name}.png` });
 }
 
-/** 点角色 → 角色卡 → 一起玩 → 面板打开 */
+/**
+ * 点角色 → 角色卡 → 一起玩 → 面板打开。
+ * 两件事都要防：动物自己一直在走动，按下去那一下可能没点中；上一块面板也可能还没卸干净，
+ * 那一下会被它的背景层吃掉（背景层收到 pointerdown 就当作「点外部」把面板收了）。
+ * 所以先确认没有对话框，再点、再确认卡片真的出来了，没出来就重来一次。
+ */
 async function openGame(page: Page, animal: string, title: string): Promise<void> {
-  await tapActor(page, animal);
-  await page.getByRole("button", { name: `一起玩：${title}` }).click();
+  const play = page.getByRole("button", { name: "一起玩：" + title });
+  await expect(page.locator('[role="dialog"]')).toHaveCount(0);
+  await expect(async () => {
+    await tapActor(page, animal);
+    await expect(play).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+  await play.click();
   await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
 }
 
 /** 面板右上角的「回到森林」 */
 async function backToForest(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "回到森林" }).click();
+  const back = page.getByRole("button", { name: "回到森林" });
+  await back.click();
+  // 面板真的卸掉了再往下走：它还在的那一瞬间，「开始倾诉」照样是可见的（一直在森林里），等它没用
+  await expect(back).toHaveCount(0);
   await expect(page.getByRole("button", { name: "开始倾诉" })).toBeVisible();
 }
 
@@ -42,6 +81,7 @@ test.describe("七个小游戏", () => {
   test("入林之后逐个玩完七个小游戏，gameContext 记下七条", async ({ page }) => {
     test.setTimeout(300_000);
     await page.goto("/?dev=1");
+    await stubGames(page);
     await finishOnboarding(page);
 
     // 1. 敲树洞 · 笃笃

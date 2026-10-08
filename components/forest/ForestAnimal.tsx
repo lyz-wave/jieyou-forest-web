@@ -9,6 +9,7 @@ import { useActorMotion } from "@/hooks/useActorMotion";
 import type { AnimalDef, AnimalId } from "@/lib/animals";
 import type { WorldPos } from "@/lib/forest/ground";
 import type { Facing } from "@/lib/forest/motion";
+import type { Gesture } from "@/lib/talk/gesture";
 import { HABITS, TERRITORIES, type Perch } from "@/lib/forest/territory";
 import { shadowOffset } from "@/lib/scene/lighting";
 
@@ -64,6 +65,10 @@ export function ForestAnimal({
   onActivate,
   badge,
   playToken = 0,
+  speaking = false,
+  bubble = null,
+  gesture = null,
+  gestureLoop = false,
 }: {
   animal: AnimalDef & { id: AnimalId };
   command: ActorCommand | null;
@@ -74,6 +79,14 @@ export function ForestAnimal({
   badge?: ReactNode;
   /** 刚玩完游戏回到森林时变大的数字，动物据此轻跳一下（0 = 不跳） */
   playToken?: number;
+  /** 正在发言：走到前面、放大一点、带一圈光 */
+  speaking?: boolean;
+  /** 头顶气泡里已经打出来的字 */
+  bubble?: string | null;
+  /** 这一刻的小动作：聆听做自己的，圆桌做反应 */
+  gesture?: Gesture | null;
+  /** 反复轻轻做（聆听时用） */
+  gestureLoop?: boolean;
 }) {
   const { lighting, reducedMotion, unit, layout } = useScene();
   const territory = TERRITORIES[layout][animal.id];
@@ -131,6 +144,19 @@ export function ForestAnimal({
     >
       {/* 只有站在地上的动物才在地面投下接触阴影；树上和水里的没有 */}
       {hasGroundShadow(territory.perch, motionState.pose) && <ContactShadow lift={motionState.lift} size={size * unit} />}
+      <motion.div
+        className="absolute inset-0"
+        animate={{ scale: speaking ? 1.14 : 1 }}
+        transition={{ type: "spring", stiffness: 180, damping: 22 }}
+      >
+        {speaking ? (
+          <div
+            aria-hidden
+            data-testid="speaking-glow"
+            className="pointer-events-none absolute -inset-3 rounded-full"
+            style={{ background: "radial-gradient(closest-side, rgba(255, 238, 200, 0.5), rgba(255, 238, 200, 0))" }}
+          />
+        ) : null}
       <div className="absolute inset-0" style={sink ? { transform: `translateY(${sink}%)` } : undefined}>
         <PaperPuppet
           ref={puppet}
@@ -141,6 +167,8 @@ export function ForestAnimal({
           reducedMotion={reducedMotion}
           facing={motionState.facing}
           pose={motionState.pose}
+          gesture={gesture}
+          gestureLoop={gestureLoop}
           badge={badge}
           onActivate={() => {
             void puppet.current?.react();
@@ -148,6 +176,21 @@ export function ForestAnimal({
           }}
         />
       </div>
+      </motion.div>
+      {speaking ? (
+        <motion.div
+          data-testid="talk-bubble"
+          className="pointer-events-none absolute bottom-full left-1/2 w-[260px]"
+          style={{ x: "-50%" }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="paper-card px-3 py-2">
+            <p className="text-xs text-ink-soft">{animal.name + " · " + animal.mindset}</p>
+            <p data-testid="talk-bubble-text" className="text-sm leading-relaxed text-ink">{bubble ?? ""}</p>
+          </div>
+        </motion.div>
+      ) : null}
     </WorldActor>
   );
 }

@@ -61,7 +61,30 @@ export async function hotspotBox(page: Page, testId: string): Promise<Box> {
  * 点森林里的某个角色：先量出它此刻热区的中心，再直接点那个坐标。
  * 森林一直在动（相机漂移 + 动物走动），Playwright 等不到「元素静止」，只能自己量。
  */
+/**
+ * 等镜头停稳。镜头推进/缩回的那半秒里，热区的位置一直在变：
+ * 量的时候还在原处，点下去那一刻已经挪开了（森林里这两处「点不开卡片」的偶发都是这么来的）。
+ * 最多等 1.5 秒就放行 —— 手机上的漂移（李萨如曲线）本来就不会完全静止。
+ */
+export async function settleCamera(page: Page): Promise<void> {
+  const shift = (): Promise<number[]> =>
+    page.getByTestId("paper-world").evaluate((el) => {
+      const t = getComputedStyle(el).transform;
+      if (t === "none") return [0, 0, 0];
+      const m = new DOMMatrix(t);
+      return [m.m41, m.m42, m.m43];
+    });
+  let last = await shift();
+  for (let i = 0; i < 15; i += 1) {
+    await page.waitForTimeout(100);
+    const now = await shift();
+    if (Math.abs(now[0] - last[0]) < 0.5 && Math.abs(now[1] - last[1]) < 0.5 && Math.abs(now[2] - last[2]) < 0.5) return;
+    last = now;
+  }
+}
+
 export async function tapActor(page: Page, testId: string): Promise<void> {
+  await settleCamera(page);
   const box = await hotspotBox(page, testId);
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 }
