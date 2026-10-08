@@ -2,6 +2,10 @@
  * 森林 AI 的接口约定。
  * 第一阶段只有本地 mock（./mock.ts），第二阶段接真模型时只换 ./index.ts 里的实现，小游戏代码不动。
  */
+import type { AnimalId } from "@/lib/animals";
+
+/** 谁在说话：七只动物、古树，或用户自己 */
+export type Speaker = AnimalId | "tree" | "user";
 
 /** 一句话要么是发生过的事实，要么是心里下的判断 */
 export type ThoughtAnswer = "fact" | "guess";
