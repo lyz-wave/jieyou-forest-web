@@ -4,6 +4,8 @@
 
 > 解忧森林不能替代专业心理咨询。
 
+线上地址：<https://jieyou-forest-web.radiant-hawking.workers.dev>（Cloudflare Workers；部署与再发布见文末「部署」）。
+
 ## 当前进度：第三阶段进行中（沉淀与年轮已经能走通）
 
 **倾诉与圆桌（第二阶段）**：点「开始倾诉」，七只动物聚到古树前坐好，界面就开始了：
@@ -78,6 +80,8 @@ JIEYOU_MODEL_LIGHT=claude-haiku-4-5-20251001   # 风险检测
 
 > 两个模型名抄自产品需求文档，**上线前要用当时可用的模型 ID 核实一遍**（改环境变量即可，不用动代码）。服务端不打印用户写的内容。
 
+部署到 Cloudflare 时用同名的三个变量（`npx wrangler secret put`），见「部署」一节。
+
 ## 运行
 
 ```bash
@@ -117,6 +121,20 @@ npm run lint        # 代码检查
 2. 角色卡、小游戏和年轮页里个别句子还可以再顺一遍。
 3. `lib/games/*.ts` 里几处注释是拼接生成的，格式可以整理。
 4. 年轮纸雕的层高是按「从外到内」等距垫的，以后可以按记录条数调层高，让厚的那一年真的更厚一点。
+
+## 部署（Cloudflare Workers）
+
+线上跑在 Cloudflare Workers 上：<https://jieyou-forest-web.radiant-hawking.workers.dev>（Worker 名 `jieyou-forest-web`，用 Cloudflare 官方的 `@opennextjs/cloudflare` 适配器把 `next build` 的产物适配到 workerd）。
+
+```bash
+npm run preview   # 本地按生产的样子跑一遍：先构建，再用 wrangler dev 起在 http://localhost:8787
+npm run deploy    # 构建并发布到 Cloudflare
+```
+
+- **三个变量**：`ANTHROPIC_API_KEY`（不设的话八个接口都回 503，界面走「风太大了没听清」那句降级话）、`JIEYOU_MODEL_MAIN`、`JIEYOU_MODEL_LIGHT`（后两个可选）。线上用 `npx wrangler secret put ANTHROPIC_API_KEY` 设置；本地预览把 `.dev.vars.example` 复制成 `.dev.vars`（已在 `.gitignore` 里）。
+- **日常开发不受影响**：还是 `npm run dev`，单测和 E2E 也照旧。`next.config.ts` 里**没有**加 `initOpenNextCloudflareForDev()`——这个项目不用 Workers 的绑定，没必要让开发服务器多启一个 workerd。
+- **数据仍然只在这台设备上**：IndexedDB 按域名分家，`localhost` 上长出来的年轮不会跟着到线上地址，线上地址的年轮也不会回到本地。
+- 部署体积 gzip 约 1.1 MB（免费版上限 3 MB）；首页是静态资源，Worker 只在访问 `/api/*` 时运行。
 
 ## 开发提示
 

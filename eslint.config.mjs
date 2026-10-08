@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Cloudflare 构建产物（.gitignore 里也忽略了）
+    ".open-next/**",
+    ".wrangler/**",
   ]),
 ]);
 

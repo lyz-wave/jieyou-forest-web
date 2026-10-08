@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. 第 1–3 阶段都已完成（记录见第 9 节）：第 1 阶段 63/63（9.1–9.7）、第二阶段引导式选伙伴（9.8）、倾诉与圆桌（9.9）与一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，9.10）、**第三阶段沉淀与年轮**（`openspec/changes/stage3-rings/`，9.11：Dexie 第 2 版、年轮三级浏览、成长卡片、先放一放与古树追问、`?dev=1` 演示数据；年轮在 10-08 做成了一盘**纸雕**（9.12），10-09 按用户的要求改成**剪纸年轮**，见 9.13）。**接下来是第四阶段**（记忆唤醒、数据导出导入删除、音效与动画打磨，架构建议见第 11.3、11.4 节），动手前先走 OpenSpec 并和用户确认范围。语音输入按用户 2026-10-08 的意思先放着。
+4. 第 1–3 阶段都已完成（记录见第 9 节）：第 1 阶段 63/63（9.1–9.7）、第二阶段引导式选伙伴（9.8）、倾诉与圆桌（9.9）与一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，9.10）、**第三阶段沉淀与年轮**（`openspec/changes/stage3-rings/`，9.11：Dexie 第 2 版、年轮三级浏览、成长卡片、先放一放与古树追问、`?dev=1` 演示数据；年轮在 10-08 做成了一盘**纸雕**（9.12），10-09 按用户的要求改成**剪纸年轮**，见 9.13）。**接下来是第四阶段**（记忆唤醒、数据导出导入删除、音效与动画打磨，架构建议见第 11.3、11.4 节），动手前先走 OpenSpec 并和用户确认范围。语音输入按用户 2026-10-08 的意思先放着。第 1–3 阶段已经部署在 Cloudflare Workers 上（Worker 名 `jieyou-forest-web`，地址 <https://jieyou-forest-web.radiant-hawking.workers.dev>，做法见 9.14）；线上要能真的对话，需要设置 `ANTHROPIC_API_KEY`。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -68,6 +68,8 @@
 | 3 | 沉淀、年轮三级浏览、成长卡片 | **✅ 已完成**（`openspec/changes/stage3-rings/`，见 9.11；年轮的纸雕见 9.12；E2E 与截图齐全） |
 | 4 | 记忆唤醒、数据导入导出删除、音效、动画打磨 | 未开始（**风险检测与求助卡已经按文档第八节做进第二阶段**，见 9.10；语音输入按用户意思后置） |
 
+> 部署：第 1–3 阶段已经跑在 Cloudflare Workers 上（`jieyou-forest-web`，<https://jieyou-forest-web.radiant-hawking.workers.dev>，做法见 9.14）。线上目前没设模型 Key，八个接口都走降级。
+
 ### 2.2 第一阶段各组
 
 | 组 | 内容 | 状态 |
@@ -98,6 +100,7 @@
 - **第三阶段（沉淀与年轮）完成后（2026-10-08）**：`npx vitest run` **85 个文件 605 个用例全部通过**（上轮 74/526）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E（`playwright.prod.config.ts`，mobile + desktop）**54 个全部通过**（新增 `e2e/rings.spec.ts` 两条 × 两个视口，`e2e/talk.spec.ts` 的收尾改走「再次打分 → 成长卡片」）；截图 16 张在 `docs/rings/`
 - **年轮改成一盘纸雕之后（2026-10-08）**：`npx vitest run` **86 个文件 617 个用例全部通过**（上轮 85/605）；`npx tsc --noEmit`、`npx eslint .` 零报错；`e2e/rings.spec.ts`（mobile + desktop）通过，`docs/rings/` 的截图重新生成（内圈抬起、纸下见影，见 9.12）
 - **年轮改成剪纸年轮之后（2026-10-09）**：`npx vitest run` **87 个文件 641 个用例全部通过**（上轮 86/617）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E **54 passed (4.1m)**（含 `e2e/rings.spec.ts` 两条 × 两个视口）；`docs/rings/` 16 张截图重生成。
+- **部署到 Cloudflare 之后（2026-10-09）**：`npx opennextjs-cloudflare build` 成功；`npx wrangler deploy --dry-run` 报 gzip **1113.57 KiB**、Worker Startup **18 ms**；本地 `wrangler dev`（8787）与线上都验过：首页 200（标题「解忧森林」、入林页正常、中文字体分片 200）、`POST /api/risk` 合法入参 503 降级、非法入参 400、未知路径 404（见 9.14）
 
 ---
 
@@ -859,6 +862,29 @@ interface PuppetDef {
 2. **量到的是折起动画中间那一帧**。纸卡是 rotateX −88 → 0 折起来的，动画没落定就量 `boundingBox()`，拿到的是被投影压扁的盒子（实测 150×41，落定后 232×59），按那个坐标点不到东西。`e2e/rings.spec.ts` 里加了一个 `settleCards(page)`：等 `.paper-card` 的 `transform` 变成 `none` 或单位矩阵再量。
 3. **`locator.click({ position })` 会先做稳定性检查**，在折起的卡片上会一直报 `element is not stable` 直到超时；按坐标点用 `page.mouse.click(x, y)` 绕开。
 4. SVG 元素的 `className` 是 `SVGAnimatedString`（9.12 也踩过，这次是 `getAttribute("class")`）；另外 `<g>` 上有 `onClick` 时，`userEvent.click(getByRole("button", { name }))` 点的是热区路径，别去点组。
+### 9.14 部署到 Cloudflare Workers（2026-10-09 完成）
+
+用户 2026-10-09 说「先提交然后部署到cloudflare上」。提交那部分见下面「三个提交」，这一节记部署。
+
+**为什么走这条路线**：Cloudflare 官方给 Next.js 的路线是 `@opennextjs/cloudflare` 适配器（把 `next build` 的 standalone 产物适配到 workerd，靠 Workers 的 Node.js 兼容层）。这个项目特别合适：服务端只有 8 个 Route Handler、全是 Web 标准的 Request/Response，没有数据库、没有文件读写，数据都在浏览器 IndexedDB 里 —— **不需要 D1 / KV / R2，也不用配 CORS**。选它的另一个理由是「改完照样能本地开发」：适配器只在构建和部署时介入，日常还是 `next dev`。
+
+**三个提交（年轮的剪纸那一批，已推）**：`6bd4c50` feat(rings) 年轮改成一盘剪纸（`lib/rings/stack.ts`、`lib/rings/paper.ts` 与两个测试、`components/rings/RingBrowser.tsx` 与测试）；`15def1b` test(e2e) 年轮剪纸的端到端用例与两视口截图（`e2e/rings.spec.ts` 与 docs）；`60770d3` docs 记录与验收（README、HANDOFF、progress）。`git push origin main` 把远端从 `6607bff` 推到 `60770d3`。
+
+**加了什么（六个文件 + 两条脚本）**：
+- `wrangler.jsonc`：`main: ".open-next/worker.js"`、`name: "jieyou-forest-web"`、`compatibility_date: "2025-10-01"`、`compatibility_flags: ["nodejs_compat", "global_fetch_strictly_public"]`、`assets: { directory: ".open-next/assets", binding: "ASSETS" }`、`observability.enabled`。
+- `open-next.config.ts`：`defineCloudflareConfig()` 默认配置。
+- `.dev.vars.example`：三个变量名（`ANTHROPIC_API_KEY`、`JIEYOU_MODEL_MAIN`、`JIEYOU_MODEL_LIGHT`）。
+- `.gitignore`：加 `/.open-next/`、`/.wrangler/`、`.dev.vars`。
+- `package.json`：`preview`（构建 + `wrangler dev`）与 `deploy`（构建 + 发布）。
+- `README.md`：顶部加线上地址，末尾新增「部署（Cloudflare Workers）」一节。
+- **没有**照抄适配器模板里的 R2 增量缓存、self-reference service binding 与 IMAGES 绑定（没有 ISR、不用 `next/image`，加上只是多一个空桶）；**也没有**在 `next.config.ts` 里加 `initOpenNextCloudflareForDev()`（不用 Workers 绑定，加了只会让 `next dev` 多启一个 workerd）。
+
+**验证（都真跑过）**：`npx opennextjs-cloudflare build` 成功（`Worker saved in .open-next/worker.js`）→ 本地 `npx wrangler dev --port 8787`：`/` 200、`POST /api/risk` 合法入参 503（没设 Key，走降级）、非法入参 400、未知路径 404 → `npx wrangler deploy --dry-run` 报 **Total Upload 5274.21 KiB / gzip 1113.57 KiB**（免费版 gzip 上限 3 MB）→ `npx wrangler deploy` 发布成功：<https://jieyou-forest-web.radiant-hawking.workers.dev>（118 个静态资源、Worker Startup 18 ms、Version ID `b80e3781-2d9e-4425-8303-05a83db2426b`）。线上用 Playwright 复核（bash 里的 curl 访问公网一律 000、只有 localhost 通，脚本要放进项目里才解析得到 `playwright`）：首页 200、标题「解忧森林」、入林页正常、中文字体分片 200（728 字节）、`POST /api/risk` 503 降级、`{}` 400；截图也看过了。
+
+**三件要知道的事**：
+1. **线上目前是降级状态**：没有设 `ANTHROPIC_API_KEY`（仓库里没有 `.env*`，用户本地的开发服务器也没这个变量）。要让七只动物真的说话，得自己跑 `npx wrangler secret put ANTHROPIC_API_KEY`（我不经手这个值）。两个模型变量同名同理，可选。
+2. **数据跟着域名走**：IndexedDB 按 origin 分家，`localhost` 上的年轮不会跟着到线上地址，反过来也一样；换自定义域等于又换一份。
+3. **`?dev=1` 在线上也开得出来**（`lib/dev.ts` 的 `devToolsEnabled(search, nodeEnv)` 只认参数），调试抽屉与「生成演示数据」按钮对访客可见 —— 但都只写访客自己浏览器里的数据，不影响别人。要是不想给访客看到，给 `devToolsEnabled` 再加一个域名判断即可。
 ## 10. 第一阶段实现指南（已完成，留作参考）
 
 第 1 阶段的 63 项已于 2026-10-06 全部完成并通过全量检查（记录见第 9 节）。本节保留当时的做法与验收标准，供第二阶段参考。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
@@ -1096,7 +1122,7 @@ interface Memory {
 然后：
 - 运行 git status、openspec list、npm run typecheck、npm run lint、npm test，确认当前状态与 HANDOFF.md 第 2 节是否一致，有差异先告诉我
 - 第 1 阶段 63 项已全部完成并通过全量检查（记录见第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
-- 第一、二、三阶段都已完成（见 9.8–9.12），并按产品文档 `解忧森林-prompt.md` 逐节校对过；下一步是第四阶段（记忆唤醒、数据导出导入删除、音效与打磨，设计草稿在第 11.3、11.4 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
+- 前三个阶段都已完成（见 9.8 到 9.13），并按产品文档 `解忧森林-prompt.md` 逐节校对过；也已经部署在 Cloudflare Workers 上（见 9.14）；下一步是第四阶段（记忆唤醒、数据导出导入删除、音效与打磨，设计草稿在第 11.3、11.4 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
 
 要求：
 - 用中文沟通
