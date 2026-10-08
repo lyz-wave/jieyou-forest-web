@@ -111,3 +111,12 @@
 - 改动规模（代码三个提交，对比 e6c4117）：**99 个文件、+5726 / −77**；其中非测试的生产代码 47 个文件 **+2718 / −46**（其余是文档、E2E、截图与 openspec 变更）。
 - 提交：拆成 4 个提交（模型通道 / 倾诉流程 / 引导选伙伴 / 文档与校对记录），前三个都在「工作树正好等于该提交」的状态下跑过全量单测 + typecheck + lint（`git stash push --keep-index` 的做法）。
 - 验证：单测 74 文件 526 用例通过；typecheck、lint 零报错；生产 E2E 50 个全部通过（含危机守护页两条与「再说一轮」）；截图 docs/talk 8 张。
+## 2026-10-08 · 第三阶段（沉淀与年轮）
+
+按产品文档第六、七、九节做完沉淀与年轮：Dexie 升到第 2 版（sessions / memories 两张新表 + 迁移测试）、年轮的分组/圈宽/配色/演示数据都是纯函数、结束流程走 心结解开了 → 再次打分 → 沉淀 → 年轮长一圈 → 成长卡片，另加「先放一放」存 paused 与古树追问、年轮三级浏览（年→月→日→当天卡片，含手势缩放与主题筛选）、开发模式「生成演示数据」。
+
+- 调用数：turn 57–60 主段 **341 次**（run_code 148｜bash 90｜read 51｜write 24｜job_output 11｜grep 6｜compress 5｜glob 2｜read_image 2｜create_goal 1｜validate_dsh_ui 1）。逐轮：57 Openspec 与数据层 99｜58 界面 129｜59 E2E 与文档 113。planning（只读规划）65 次 = **19%**｜写盘 24 次 = 7%｜其余落在 run_code 内联的读写与验证（148 次 run_code 里含 typecheck / 单测 / E2E / 截图）。
+- 返工 **6 次**：① e2e/talk.spec.ts 收尾按新流程改完仍多点了一次「看看这次留下了什么」，全量生产 E2E 52 passed / 2 failed，改后 54 passed；② e2e/rings.spec.ts 断言 ring-growing 可见是竞态（本地假接口下生长页一闪而过），删断言只认 growth-card；③ 磁盘临时写满（ENOSPC）被 Next 报成 Failed to type check，白查一轮类型错误，rm -rf .next 后一次通过；④ 年轮截图拍在纸卡折起动画（rotateX -88 → 0）中间，画面是压扁的，shot() 先等 .paper-card 的 transform 落定；⑤ 年层没有可见的年份字、面包屑「全部」被折成两行，给年圈加 ring-label、加 ring-caption 那行字、whitespace-nowrap（各有单测）；⑥ 手势用例的语义先写反（点进年份后本来就在月层，捏合后应断言 ring-month 为空）。
+- 改动规模：已跟踪文件 **64 个、+778 / −119**；新增文本文件 29 个共 **2725 行**（docs/rings 的 16 张截图另计）。
+- 验证：单测 **85 文件 605 用例**通过；typecheck、lint 零报错；生产 E2E **54 个**全部通过（年轮 spec 4 passed）；截图 docs/rings 16 张，已自查成长卡片与年层（年份字、提示行、「全部」不再折行）。
+- 未提交：远端 origin/main 仍是 8bfca6f，第三阶段全部改动停在工作区。

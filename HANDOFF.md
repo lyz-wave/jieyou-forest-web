@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. 第 1 阶段 **63 项全部完成**（第 1–11 组，记录见第 9 节），已提交并推送到 `origin/main = e6c4117`。第二阶段两件事都已做完：引导式选伙伴（`openspec/changes/companion-guided-pick/`，见 9.8）、倾诉与圆桌（`openspec/changes/stage2-roundtable/`，见 9.9，24 项全勾），以及一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，见 9.10：风险三级与危机处置、聆听与反应动画、「全部显示」、点头像点名都改回文档写法）。**接下来的第三阶段是沉淀与年轮**（架构建议见第 11.2 节，素材里有 Dexie 第 2 版的 stores 设计与年轮三级浏览），动手前先走 OpenSpec 并和用户确认范围。
+4. 第 1–3 阶段都已完成（记录见第 9 节）：第 1 阶段 63/63（9.1–9.7）、第二阶段引导式选伙伴（9.8）、倾诉与圆桌（9.9）与一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，9.10）、**第三阶段沉淀与年轮**（`openspec/changes/stage3-rings/`，9.11：Dexie 第 2 版、年轮三级浏览、成长卡片、先放一放与古树追问、`?dev=1` 演示数据）。**接下来是第四阶段**（记忆唤醒、数据导出导入删除、音效与动画打磨，架构建议见第 11.3、11.4 节），动手前先走 OpenSpec 并和用户确认范围。语音输入按用户 2026-10-08 的意思先放着。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -65,8 +65,8 @@
 |---|---|---|
 | 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **✅ 已完成，63/63 项已勾选**（2026-10-06 全量检查通过，见 9.6） |
 | 2 | 倾诉、圆桌发言、古树总结、追问（接 Claude API） | **✅ 已完成**（引导式选伙伴见 9.8；倾诉与圆桌见 9.9；按文档校对见 9.10） |
-| 3 | 沉淀、年轮三级浏览、成长卡片 | 未开始 |
-| 4 | 记忆唤醒、数据导入导出删除、音效、动画打磨 | 未开始（**风险检测与求助卡已经按文档第八节做进第二阶段**，见 9.10） |
+| 3 | 沉淀、年轮三级浏览、成长卡片 | **✅ 已完成**（`openspec/changes/stage3-rings/`，见 9.11；E2E 与截图齐全） |
+| 4 | 记忆唤醒、数据导入导出删除、音效、动画打磨 | 未开始（**风险检测与求助卡已经按文档第八节做进第二阶段**，见 9.10；语音输入按用户意思后置） |
 
 ### 2.2 第一阶段各组
 
@@ -95,6 +95,7 @@
 - **第 10 组 + 8.4 + 11.1 完成后（2026-10-06）**：`npx vitest run` **52 个文件 371 个测试全部通过**；`typecheck`、`lint` 零报错；`e2e/games.spec.ts` 用 `playwright.existing-dev.config.ts` 对着用户跑着的开发服务器（3200）跑，mobile 46.7s、desktop 52.5s 各 1 个用例通过；截图 16 张在 `docs/games/`（七个小游戏 + gameContext 抽屉，两个视口）
 - **第 1 阶段收尾（11.2–11.4）完成后（2026-10-06）**：新增 `e2e/quality.spec.ts`（3 个用例 × 两个视口）；`npm run typecheck`、`npm run lint` 零报错；`npx vitest run` **52 个文件 371 个测试全部通过**；生产 E2E（`playwright.prod.config.ts`）**38 个全部通过（2.5 分钟）**；开发服务器 E2E（`playwright.existing-dev.config.ts`，复用 3200，dev-mobile/dev-desktop）**30 通过 2 跳过**，`dev-iphone` 的 WebKit 命中测试单独跑 **1 通过**；`npm run build` 成功；`docs/onboarding`、`docs/forest`、`docs/games` 的截图全部重新生成，已自检手机与桌面两个视口的森林主场景；`README.md` 改写成验收版
 - **第二阶段 + 按文档校对完成后（2026-10-08）**：`npx vitest run` **74 个文件 526 个用例全部通过**（上轮 71/504）；`npm run typecheck`、`npm run lint` 零报错；生产 E2E（`playwright.prod.config.ts`）**50 个全部通过**（含新增的危机守护页两条 × 两个视口，见 9.10）；截图重新生成在 `docs/talk/`（新增 `*-talk-guard.png`）
+- **第三阶段（沉淀与年轮）完成后（2026-10-08）**：`npx vitest run` **85 个文件 605 个用例全部通过**（上轮 74/526）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E（`playwright.prod.config.ts`，mobile + desktop）**54 个全部通过**（新增 `e2e/rings.spec.ts` 两条 × 两个视口，`e2e/talk.spec.ts` 的收尾改走「再次打分 → 成长卡片」）；截图 16 张在 `docs/rings/`
 
 ---
 
@@ -483,7 +484,7 @@ interface PuppetDef {
 
 ---
 
-## 9. 已完成的组：第 7–11 组（第 1 阶段）与第二阶段（引导式选伙伴、倾诉与圆桌、按文档校对）
+## 9. 已完成的组：第 7–11 组（第 1 阶段）、第二阶段（引导式选伙伴、倾诉与圆桌、按文档校对）与第三阶段（沉淀与年轮）
 
 ### 9.1 手机伙伴页标题被滚出屏幕（2026-10-06 已修复）
 
@@ -737,6 +738,61 @@ interface PuppetDef {
 
 **还没做的两件事（等用户拍板）**：① 6.3.3 的可选**语音输入**；② 第 5 步那个「不知道找谁？帮我看看」的**引导选伙伴**是产品文档之外加的一步，去留等用户定。
 
+### 9.11 第三阶段：沉淀与年轮（`stage3-rings`，2026-10-08 完成）
+
+**做了什么**：把「倾诉结束」到「年轮里能翻到这一天」整条链路接上，全部只写本机。
+
+**1. 数据层（Dexie 第 2 版）**
+
+- `lib/journal/types.ts`：`Message` / `Session` / `Memory` / `MemoryDraft`（模型只回 8 个字段，`helpfulAnimals` 与两次心情分由客户端补）、`SessionStatus = open | resolved | paused`、固定标签库 `THEMES`（13 个，末尾兜底「其他」）、`sanitizeThemes(values, max = 3)`（只留库内的、去重、最多 3 个、空了回「其他」）与一串字数上限常量。
+- `lib/db/db.ts` 新增 `openJieyouDb(name)`：`version(1)` 只有 `profile`，`version(2)` 加 `sessions: "id, startedAt, status"` 与 `memories: "id, date, sessionId"`；没有 indexedDB 或打不开时返回 `null`（不抛）。
+- `lib/db/journal.ts` 新增 `createJournalStore(dbName)`：`saveSession / getSession / listSessions（startedAt 降序）/ latestPaused / listMemories（date 降序）/ deleteMemory / clear`，打不开库时退回内存实现（`persistent: false`）。
+- `lib/db/profile.ts` 改成共用 `openJieyouDb`；`lib/stores/journal.ts` 是界面用的 zustand：`memories` / `paused` / `ready` / `persistent` 与 `load / addMemory / putSession / removeMemory / clear / getSession`。
+- 迁移有测试守着：手工用 `version(1)` 写一行 profile，升到第 2 版后还能读回来（`lib/db/journal.test.ts`）。
+
+**2. 年轮纯函数（`lib/rings/rings.ts`）**
+
+- 圈宽 `ringWidth(count) = clamp(6 + count * 4, 6, 26)`；配色 `ringColor(emotions)` 取出现最多的情绪，并列取先出现的，认不出就 `#c9c0ae`（`EMOTION_COLORS` 十条）。
+- `yearRings` / `monthRings(memories, year)`（固定 12 圈，1 月最内）/ `dayRings(memories, year, month)`（只含有记录的日子）/ `highlightIds(memories, theme)` / `breadcrumbOf(year, month, day)` / `dateKey(y, m, d)`。
+- `demoMemories(seed, today)`：用 `seeded()` 造的 8 条假记录，跨 2–3 年、当年不越过今天，id 是 `demo-N`，按日期升序。
+
+**3. 沉淀链路（模型 → 卡片 → 库）**
+
+- `lib/prompts.ts` 新增 `memoryPrompt(context)`（文档 10.4）：输出 8 个字段，title ≤12、summary ≤60、emotions 1–5、themes 只从标签库挑 1–3、coreBelief ≤40、shift 各 ≤20、insight 第一人称 ≤40、action ≤30 可省；`lib/ai/schema.ts` 的 `parseMemory` 是手写严格守卫（多一个键都算不合格）。
+- `lib/ai/anthropic.ts` 加 `memory()`，`lib/talk/api.ts` 加 `memory()`，`app/api/memory/route.ts` 与 summary 路由同形 —— 服务端一共八个 handler。
+- `lib/journal/settle.ts` 是纯函数：`localDate(now)`（本地时区 YYYY-MM-DD）、`messagesFromTalk(log)`（把「我写的 + 七只说的 + 总结 + 追问」编成消息流，`resonated` 只看点过「说到心里了」的动物）、`helpfulAnimalsOf(messages)`、`memoryFromDraft({draft, sessionId, date, helpfulAnimals, moodBefore, moodAfter})`、`sessionFromTalk({...})`。
+
+**4. 结束流程（再次打分 → 生长 → 成长卡片）**
+
+- `lib/stores/talk.ts`：`TalkPhase` 增加 `rate | grow | card`，新增 `startedAt` / `moodAfter` / `memory` / `memoryStatus`，动作 `toRate / setMoodAfter / toGrow / memoryFailed / gotMemory`。
+- 总结页与追问页的「心结解开了」现在调 `toRate()`（不再直接回森林），「先放一放」调 `onPause`。
+- `components/talk/RateStage.tsx`：1–10 打分（可跳过，进来时没打过分就说明这次也能跳）→ 两个按钮都会 `toGrow()` 再调 `flow.settle()`。
+- `components/talk/GrowStage.tsx`：岁岁把这一次收进年轮（两圈纸环 + 一个光点，减弱动画时不动）；失败显示同一句降级话与「再试一次」。
+- `components/talk/useTalkFlow.ts` 的 `settle()`：写记忆、写 `resolved` 会话、`gotMemory()`；`pause()`：只写 `paused` 会话（不沉淀）。
+- `components/rings/GrowthCard.tsx`：日期与标题、心情 4 → 7（缺分写「没打分」）、「从『…』到『…』」、领悟、下一步、帮到我的动物（`PuppetMark`）。
+
+**5. 年轮页与暂停提示**
+
+- `components/rings/RingBrowser.tsx`（400 多行）：年层 → 12 圈月轮（没记录的月份是浅色细线）→ 有记录的日子 → 当天成长卡片，「那天的对话」用 `<details>` 惰性取原文；面包屑逐级返回；主题筛选只点亮相关的圈；空状态「你的第一圈年轮，正在生长」。环形只有描边能点，所以每个 `RingRow` 上另加了一圈透明加宽的 `pointerEvents="stroke"` 热区，键盘也能进（Enter / 空格）。
+- `lib/rings/gesture.ts`：`zoomIn`（进到那年**最近有记录的**月 / 那天）、`zoomOut`（逐级退）、`pinchDistance`、`pinchAction`（1.25 倍阈值）、`isBackSwipe`（向右 80px 且纵向不过 80）。年轮页上双指张开／捏合、向右划、桌面按住 Command 滚一格都接上了。
+- `components/forest/PausedPrompt.tsx`：有 paused 会话时岁岁问「上次那件事，还想接着聊吗？」并复述上次最后那句；「接着聊」把那次注入倾诉流程，「先不用」只是这次不显示（库里不动）。
+- `components/forest/CharacterCard.tsx` 的「我的年轮」从纸条提示改成真入口（新 prop `onRings`）；`components/forest/ForestApp.tsx` 进森林时 `useJournalStore.getState().load()`。
+- `?dev=1` 的调试抽屉新增 `components/dev/DemoDataButton.tsx`「生成演示数据」（`demoMemories(DEMO_SEED = 20260401)`，同种子同结果）。
+
+**6. E2E**：新增 `e2e/rings.spec.ts`（两个用例 × 两个视口）——① 走完一轮 → 再次打分 8 分 → 成长卡片 → 进年轮 → 年层／月层／日层 → 那天的对话 → 面包屑回年层；② `?dev=1` 下先看空状态，再点「生成演示数据」长出一圈以上的跨年年轮，并试主题筛选。`e2e/rings.spec.ts` 的 `shot()` 在拍之前会等所有 `.paper-card` 的 `transform` 落定（PopupCard 是从底边折起来的，不等就拍到压扁的中间帧）。`e2e/talk.spec.ts` 的收尾改成新流程（`serveAll()` 里要补 `**/api/memory` 假接口；注意 `**/api/risk` 那行在文件里出现两次，锚点要连上下一行）；`e2e/forest-home.spec.ts` 里那条改成「从古树卡片走进年轮，还没沉淀过时是空状态」。
+
+**验证**：`npx vitest run` **85 个文件 605 个用例全部通过**（第三阶段开工前是 78/563）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E（`playwright.prod.config.ts`，mobile + desktop）**54 个全部通过**（含新增的年轮两条与改写后的倾诉一轮）；截图 16 张在 `docs/rings/`。
+
+**踩过的坑（别再重踩）**
+
+1. **Next 说「Failed to type check」不一定是类型错误**：那次是磁盘临时写满（`ENOSPC`，playwright 建 `test-results` 时报出来），`rm -rf .next` 后一次就过。跑 E2E 前顺手看一眼 `df -h`。
+2. 环形 SVG 的点击热区只在描边上：E2E 里用 `target.click({ position: { x: box.width / 2, y: 2 } })` 点最上面那一点，点中心会落进别的元素。
+3. 「跳过打分」本身就会走沉淀，别再补点一下「看看这次留下了什么」——那一屏已经翻过去了（`getByRole` 会等到超时）。
+4. 生长动画那一屏在本地假接口下一闪而过，E2E 里断言 `ring-growing` 是竞态；只认结果 `growth-card`（动画本身由 `components/talk/Stage3.test.tsx` 的单测守着）。
+5. 改大文件（HANDOFF / README）不要用「read 全文 + write 回写」：`read` 对大文件会静默截断。一律「读 → 精确锚点替换（断言只命中一次）→ 写回」，脚本落到 `/tmp/*.py` 再执行。
+6. 年轮最初只有圈没有字：年层看不出是哪一年、悬停也没有反应。补法是 `RingRow` 上画 `<text data-testid="ring-label">`（年圈传年份），并让每圈在悬停／聚焦时把名字报给下面那行 `ring-caption`（`focus ?? pathName ?? "点一圈，看看那一年"`）；面包屑按钮要 `whitespace-nowrap`，否则「全部」会折成两行。两处都有单测（`components/rings/RingBrowser.test.tsx` 的「年轮上的名字」）。
+7. 手势用例的语义容易写反：点进某一年之后本来就在月层，所以捏合之后要断言 `queryAllByTestId("ring-month")` 为空（回到年层），不是还有。
+
 ## 10. 第一阶段实现指南（已完成，留作参考）
 
 第 1 阶段的 63 项已于 2026-10-06 全部完成并通过全量检查（记录见第 9 节）。本节保留当时的做法与验收标准，供第二阶段参考。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
@@ -974,7 +1030,7 @@ interface Memory {
 然后：
 - 运行 git status、openspec list、npm run typecheck、npm run lint、npm test，确认当前状态与 HANDOFF.md 第 2 节是否一致，有差异先告诉我
 - 第 1 阶段 63 项已全部完成并通过全量检查（记录见第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
-- 第二阶段（倾诉与圆桌）已完成（见 9.8、9.9），并按产品文档 `解忧森林-prompt.md` 逐节校对过一轮（见 9.10）；下一步是第三阶段（沉淀与年轮，设计草稿在第 11.2 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
+- 第一、二、三阶段都已完成（见 9.8–9.11），并按产品文档 `解忧森林-prompt.md` 逐节校对过；下一步是第四阶段（记忆唤醒、数据导出导入删除、音效与打磨，设计草稿在第 11.3、11.4 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
 
 要求：
 - 用中文沟通
