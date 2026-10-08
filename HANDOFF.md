@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. 第 1 阶段 **63 项全部完成**（第 1–11 组，记录见第 9 节），并已跑过一遍全量检查：typecheck、lint 零报错，371 个单元／组件测试通过，生产 E2E 38 个通过，开发 E2E 30 个通过 2 个跳过，WebKit 命中测试通过，`npm run build` 成功，两个视口的截图已自检；README 也已按验收要求改写。**下一步是第二阶段（倾诉与圆桌，见第 11 节），开始前要和用户确认范围并走 OpenSpec。** 目前所有代码仍停在工作区，没有提交。
+4. 第 1 阶段 **63 项全部完成**（第 1–11 组，记录见第 9 节），已提交并推送到 `origin/main = e6c4117`。第二阶段两件事都已做完：引导式选伙伴（`openspec/changes/companion-guided-pick/`，见 9.8）、倾诉与圆桌（`openspec/changes/stage2-roundtable/`，见 9.9，24 项全勾），以及一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，见 9.10：风险三级与危机处置、聆听与反应动画、「全部显示」、点头像点名都改回文档写法）。**接下来的第三阶段是沉淀与年轮**（架构建议见第 11.2 节，素材里有 Dexie 第 2 版的 stores 设计与年轮三级浏览），动手前先走 OpenSpec 并和用户确认范围。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -64,9 +64,9 @@
 | 阶段 | 内容 | 状态 |
 |---|---|---|
 | 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **✅ 已完成，63/63 项已勾选**（2026-10-06 全量检查通过，见 9.6） |
-| 2 | 倾诉、圆桌发言、古树总结、追问（接 Claude API） | 未开始 |
+| 2 | 倾诉、圆桌发言、古树总结、追问（接 Claude API） | **✅ 已完成**（引导式选伙伴见 9.8；倾诉与圆桌见 9.9；按文档校对见 9.10） |
 | 3 | 沉淀、年轮三级浏览、成长卡片 | 未开始 |
-| 4 | 记忆唤醒、风险检测、数据导入导出删除、音效、动画打磨 | 未开始 |
+| 4 | 记忆唤醒、数据导入导出删除、音效、动画打磨 | 未开始（**风险检测与求助卡已经按文档第八节做进第二阶段**，见 9.10） |
 
 ### 2.2 第一阶段各组
 
@@ -94,6 +94,7 @@
 - **第 9 组完成后（2026-10-06）**：`npx vitest run` **36 个文件 269 个测试全部通过**（第 9 组新增 9 个文件 44 个测试）；`npm run typecheck`、`npm run lint` 零报错；新写的 `e2e/devtools.spec.ts`（2 个用例 ×2 视口）生产构建 **4 个全部通过**，同一个文件对着用户跑着的开发服务器（`--config=playwright.existing-dev.config.ts`，3200）**2 通过 2 跳过**（开发服务器上调试抽屉一直显示，那条只对生产构建有意义）
 - **第 10 组 + 8.4 + 11.1 完成后（2026-10-06）**：`npx vitest run` **52 个文件 371 个测试全部通过**；`typecheck`、`lint` 零报错；`e2e/games.spec.ts` 用 `playwright.existing-dev.config.ts` 对着用户跑着的开发服务器（3200）跑，mobile 46.7s、desktop 52.5s 各 1 个用例通过；截图 16 张在 `docs/games/`（七个小游戏 + gameContext 抽屉，两个视口）
 - **第 1 阶段收尾（11.2–11.4）完成后（2026-10-06）**：新增 `e2e/quality.spec.ts`（3 个用例 × 两个视口）；`npm run typecheck`、`npm run lint` 零报错；`npx vitest run` **52 个文件 371 个测试全部通过**；生产 E2E（`playwright.prod.config.ts`）**38 个全部通过（2.5 分钟）**；开发服务器 E2E（`playwright.existing-dev.config.ts`，复用 3200，dev-mobile/dev-desktop）**30 通过 2 跳过**，`dev-iphone` 的 WebKit 命中测试单独跑 **1 通过**；`npm run build` 成功；`docs/onboarding`、`docs/forest`、`docs/games` 的截图全部重新生成，已自检手机与桌面两个视口的森林主场景；`README.md` 改写成验收版
+- **第二阶段 + 按文档校对完成后（2026-10-08）**：`npx vitest run` **74 个文件 526 个用例全部通过**（上轮 71/504）；`npm run typecheck`、`npm run lint` 零报错；生产 E2E（`playwright.prod.config.ts`）**50 个全部通过**（含新增的危机守护页两条 × 两个视口，见 9.10）；截图重新生成在 `docs/talk/`（新增 `*-talk-guard.png`）
 
 ---
 
@@ -472,9 +473,9 @@ interface PuppetDef {
 | ~~3~~ | ~~没有伙伴小叶子徽记~~ | `components/forest/CompanionBadge.tsx` | 第 8.1 项已做 |
 | ~~4~~ | ~~首页没有「我的年轮」入口~~ | 古树卡里 | 第 8.3 项已做（只给提示，不跳转） |
 | ~~5~~ | ~~古树没有作为可点击角色放进森林~~ | `components/forest/TreeSpot.tsx` + `lib/scene.ts` 的 `TREE_HOTSPOT` | 第 8.1 项已做：树冠上一块 340×195 的透明热区（`perspectiveScale={false}`，避免 3D 投影二次缩放），aria-label「岁岁，古树，森林守护者」 |
-| 6 | 「坐好」提示文案是「大家都在听啦，倾诉功能下个版本开放」，规格写的是「大家都在听啦。倾诉功能下个版本开放」 | `GatherControls.tsx` | 对齐规格或者跟用户确认 |
+| ~~6~~ | ~~「坐好」提示文案是「大家都在听啦，倾诉功能下个版本开放」~~ | `GatherControls.tsx` | 已改（9.9）：点「开始倾诉」会**同时**打开倾诉流程，纸条改为「大家都在古树前坐好了」+「让大家散开」；`forest-home.spec.ts` 的用例跟着改了断言 |
 | 7 | 免责声明用的是米白色小字（`text-cream`，10px），压在草地上，对比度可能不够 | `ForestApp.tsx` | 第 8 组顺便检查对比度 |
-| 8 | 入林说明卡写着「本阶段不向外部服务发送内容」 | `Onboarding.tsx` | **第二阶段接入 Claude API 后这句话就不对了，必须改成准确的说法**：数据保存在本地，与 AI 对话时内容会发送给 AI 服务处理，服务端不保存 |
+| ~~8~~ | ~~入林说明卡写着「本阶段不向外部服务发送内容」~~ | `Onboarding.tsx` | 已改（9.9）：写明「昵称、伙伴和游戏记录只存在你自己的设备上」与「倾诉的话会发给本站的服务端、不写日志也不留下」；`Onboarding.test.tsx` 新增一条守这段文案 |
 | 9 | 说明卡里的求助信息目前是笼统的「当地心理援助热线、急救或报警」 | `Onboarding.tsx` | 原需求里的号码（12356、400-161-9995、110 / 120）**上线前必须核实**，不要未经核实就写进产品 |
 | 10 | `dev-iphone` 项目只验证命中测试 | `playwright.config.ts` | 需要时在真机上做性能和手感验收；早期只在本机 Chrome 上测到 58–60fps |
 | 11 | 用户规则要求每个会话结束时在 `progress.md` 记录指标，目前**还没有这个文件** | 项目根目录 | 见第 13 节 |
@@ -482,7 +483,7 @@ interface PuppetDef {
 
 ---
 
-## 9. 已完成的组：第 7 组、第 8 组（8.1–8.5）、第 9 组、第 10 组、第 11 组（第 1 阶段收尾）
+## 9. 已完成的组：第 7–11 组（第 1 阶段）与第二阶段（引导式选伙伴、倾诉与圆桌、按文档校对）
 
 ### 9.1 手机伙伴页标题被滚出屏幕（2026-10-06 已修复）
 
@@ -655,6 +656,86 @@ interface PuppetDef {
 - 开发服务器 E2E：`onboarding / forest-home / games` 两个视口 24 passed，`forest-life.dev` 两个视口 10 passed（游戏用例把七个小游戏又走了一遍，无障碍名对得上）。
 - 生产 E2E：38 passed，并重新生成 `docs/` 下所有截图；另加 `docs/forest/{mobile,desktop}-character-card.png` 两张角色卡头部，专门看 44px 的标记。
 - 改动规模：已跟踪文件 51 个、+96 / −65（含 26 张重生成的截图）；新增 4 个文本文件共 182 行。
+
+### 9.8 第二阶段开场：引导式选伙伴（`companion-guided-pick`，2026-10-08 已完成）
+
+**为什么**（用户提过「选动物 = 性格测试 / 接入 MBTI / 星座」的设想，我把利害讲清后用户拍板「就按你说的做」）
+- 不做人格测验，也不做星座：入林第一句是「不用急着变好。先在这里，歇一歇」，在门口先测验再贴标签等于把安慰换成了评估；人格标签重测一致性差、星座没有心理学依据，也会削弱七只动物各自挂着的真实依据——它们是七种**方法**（情绪标注 / CBT / 认知重构 / 自我关怀 / 10-10-10 + 正念 / ACT 认知解离 / 行为激活），不是七种人格。
+- 改成问「此刻你想被怎么对待」：三道题，给出恰好一只动物和一句「为什么是它」，可以接受也可以自己挑；本机记一条 `selfPicks { at, want, animalId, source: "self" | "guided" }`，作为第三阶段年轮与 AI 上下文的原料。
+- 写进规格的边界：MBTI 最多是「用户自己填的、可选的一段自我描述」，星座不进模型；**任何标签都不决定推荐谁**，推荐只由当下的答案算出来；「测试感」的玩法留到第三阶段的年轮与自我探索，不在门口拦人。心理特征属敏感信息，进 AI 上下文前要明示并最小化。
+
+**做法**
+- `lib/onboarding/selfpick.ts`（纯逻辑 + 9 例测试）：`SELF_PICK_QUESTIONS` 三道题——第 1 题「此刻，你最想被怎么对待？」6 个选项、最多选两项；第 2 题 4 个选项；第 3 题 3 个选项。每题都带中立选项（`unsure`：算作答过，但不投票）。`recommend(answers)` 只由答案计票，平票时后答的题优先，七只动物都可达；`recommendLine` 只用当时的答案措辞，不出现「性格 / 类型 / 人格」。
+- `components/onboarding/Onboarding.tsx`：第 5 步分三种形态。cards 是原来的七张卡 + 「不知道找谁？帮我看看」；guided 是「第 N / 3 问」+ 选项（`aria-pressed`）+ 上一问 / 下一问 / 看看推荐；result 是迷你纸偶 + 一句为什么 + 「看的是你此刻的需要，不代表你是什么样的人。」+ 「就是它」/「还是想自己挑」。点过引导又回到卡片不算推荐过，只记 `source: "self"`。
+- `lib/db/profile.ts`：`Profile` 增加 `selfPicks: SelfPick[]`（老资料读出来是空数组）。不建索引，所以 Dexie 不升版本。
+
+**验证（2026-10-08）**
+- 单元与组件：`npx vitest run lib/onboarding lib/db` 21 例、`npx vitest run components/onboarding components/forest lib/stores` 35 例通过；typecheck、lint 零报错。
+- E2E：`e2e/onboarding.spec.ts` 新增「走『帮我看看』入林，推荐的那只成为今天的伙伴，selfPicks 记下是引导来的」，手机与桌面两个视口都通过（8 passed / 29.5s），用例里直接读 IndexedDB 断言那条记录，并留下截图 `docs/onboarding/{mobile,desktop}-guided.png`。
+
+### 9.9 第二阶段：倾诉与圆桌（`stage2-roundtable`，2026-10-08 完成）
+
+**做了什么**：点「开始倾诉」，七只聚到古树前坐好，界面依次走 心情打分（1–10，可跳过）→ 写下想说的话（≤1000 字）→ 聆听 → 风险守护 → 圆桌发言 → 古树总结 → 追问 → 收尾回森林。本阶段不落盘（第三阶段才存年轮）。
+
+**服务端**（`app/api/*/route.ts`，七个 Route Handler，全部 `POST`）：倾诉四个 `roundtable` / `summary` / `reply` / `risk`，小游戏三个 `split-thought` / `reframe` / `break-down`。统一回话体在 `lib/ai/route.ts`：成功 `200 {ok:true,data}`，入参不对 `400 {ok:false,reason:"invalid"}`，没配 Key `503 unavailable`，模型没给合用结果或抛错 `502 upstream`；`runAi(call)` 把抛错与 null 都变成 502。**整个目录没有一行日志**——用户写的话不进日志。
+
+**模型调用**（`lib/ai/anthropic.ts`）：`DEFAULT_MODEL_MAIN = "claude-sonnet-5"`、`DEFAULT_MODEL_LIGHT = "claude-haiku-4-5-20251001"`（抄自产品需求第 19–21 行，**上线前要用当时可用的模型 ID 核实**，改 `JIEYOU_MODEL_MAIN` / `JIEYOU_MODEL_LIGHT` 即可）；`MAX_TOKENS_MAIN = 2000`、`MAX_TOKENS_LIGHT = 300`、`MAX_TOKENS_GAME = 800`；`ANTHROPIC_VERSION = "2023-06-01"`。`createAnthropicTransport(apiKey)` 是唯一碰网络的地方，抛错只带 `"anthropic " + status` 或 `"anthropic empty response"`，**不带用户文本**；`parseModelJson(raw)` 能吃纯 JSON、```json 围栏、前后夹解释文字三种写法；`createServerAI({transport, modelMain, modelLight})` 可注入假 transport（单测就是这么跑的）；`defaultServerAI(env)` 没有 `ANTHROPIC_API_KEY` 时返回 null 且一次请求都不发。
+
+**入口与守卫**：路由只通过 `lib/ai/server.ts` 的 `getServerAI()` 拿 AI（测试用 `__setServerAIForTest` / `__resetServerAIForTest`，不必配 Key、不打网络）；`lib/ai/request.ts` 是入参守卫（`TALK_MAX = 1000` 是我定的倾诉上限，产品文档只写「支持长文本」；还有 `NICKNAME_MAX = 12`、`GAME_CONTEXT_MAX = 20`、`MEMORY_MAX = 12`、`HISTORY_MAX_INPUT = 40`、`NOTE_MAX = 200`、心情 1–10 整数）；`lib/ai/schema.ts` 是模型回复的**严格守卫**：七只发言必须不重不漏、只允许 animal/text/mood 三个键、多余字段一律判失败，总结五段齐全且总字数 ≤200、voices 2–3 条，追问 ≤150 字，风险三档且 reason ≤60。
+
+**Prompt**（`lib/prompts.ts`）：`roundtablePrompt` / `summaryPrompt` / `replyPrompt` / `riskPrompt` 四个，外加三个小游戏模板 `splitThoughtPrompt` / `reframePrompt` / `breakDownPrompt`。上下文由 `contextBlock()` 拼（昵称、今天的伙伴、心情分、他说的原文；小游戏留下的、以前的记忆、对话记录都**只在非空时**出现小节），历史只取最近 `HISTORY_MAX = 12` 条；`PLAIN_STYLE` 是那四条语气规矩（口语化、先共情再给视角、动作描写放括号、只输出 JSON）。
+
+**前端一个入口**：`lib/ai/index.ts` 导出 `forestAI` / `getForestAI()`，实现换成 `lib/ai/http.ts` 的 `createHttpAI({fetch, shouldFail})`（`?dev=1` 的「模拟 AI 失败」照旧生效）；`lib/ai/client.ts` 的 `postJson` 只认 `{ok:true,data}`，没连上、非 2xx、形状不对都抛同一句 `AI_FAILURE_LINE`，只有 AbortError 原样抛。**七个小游戏一行没改。** 没有 Key 时不偷偷退回第一阶段的本地模拟，而是显示同一句降级话 +「再试一次」（`lib/ai/mock.ts` 留作离线参考）。
+
+**倾诉流程**：纯逻辑在 `lib/talk/`——`flow.ts`（`roundtableOrder` 伙伴先、`parseMention` 拆 `@墨墨`、`localGuard` 本地粗筛、`reveal` 打字机切片、`speechesAsHistory` / `replyHistory`）、`guard.ts`（`PRIVACY_LINE` 与 `guardCopy`，高风险三条路里只写「搜城市名 + 心理援助热线」，**不写未核实的号码**）、`api.ts` / `client.ts`（四个接口的调用）。状态机在 `lib/stores/talk.ts`：`phase = away | mood | listening | risk | roundtable | summary | followup`，动作 `open / setMood / setText / submit / gotSpeeches（按圆桌顺序排、同名去重）/ next / showAll / toggleMark / guard / resume / toSummary / toFollowUp / addReply（留最近 20 条）/ again / finish`，还有 `bubble`（头顶气泡的进度字）和 `toRoundtable()`（圆桌没接上时从「聆听」里出来，别让人干等）。界面在 `components/talk/`：`MoodStage` / `ListeningStage` / `RiskStage` / `RoundtableStage` / `SummaryStage` / `FollowUpStage` / `FailureLine` / `TalkFlow`，编排在 `useTalkFlow.ts`（提交时**并行**发本地粗筛的风险判定与圆桌请求；本地 high 直接守护且不打 `/api/risk`；服务端调用失败按 low 处理——宁可多报）。
+
+**舞台上发生的事**：发言的那只走到古树前方（`lib/forest/podium.ts` 的 `PODIUM_DEPTH = 16`、`podiumSpot()` / `podiumPlan()`），`ForestAnimals.tsx` 用 `send(id, {to, facing, maxDuration: SPEAK_MAX_SECONDS = 3})` 下指令，说完送回座位；`ForestAnimal.tsx` 多两个 prop `speaking` / `bubble`（放大 1.14 + `speaking-glow` + `talk-bubble`，气泡里第一行是「名字 · 思维方式」）；古树在总结时发光（`components/scene/CrownGlow.tsx` 的 `data-testid="tree-glow"`）；倾诉期间动物停止走动、粒子停下（`Particles` 的 `quiet`）。
+
+**无障碍**：只用键盘能走完整个倾诉（打分 → 输入 → 说给它听 → 下一位 → 总结 → `@` 追问 → 结束，`TalkFlow.test.tsx` 的 describe「只用键盘」用 `tabTo()` 一路断言 `document.activeElement`）；热区仍 ≥44×44；减弱动画下头顶气泡整段出现（`useTypewriter` 在 `reducedMotion` 时直接返回整句）。
+
+**这一轮踩到的坑（可复用）**：
+1. **E2E 的假服务端必须给满七只发言**：客户端 `lib/talk/api.ts` 用的是同一个严格守卫，只回 2 条发言会被判不合格 → 页面显示降级话（第一轮 6 个用例全挂就是这个原因）。同理 summary 的 voices 要 2–3 条。
+2. **生产 E2E 里三个 AI 小游戏必须 stub**：`e2e/games.spec.ts` 的 `stubGames(page)` 拦 `/api/split-thought` / `/api/reframe` / `/api/break-down`；否则没有 `ANTHROPIC_API_KEY` 的构建里小游戏拿到 503，拿不到气泡（第二轮 4 个失败）。
+3. **PopupCard 的折起动画期间量到的盒子是压扁的**（这次 desktop 量到 3.94px）→ 先 `await button.hover()` 等稳定再量。
+4. **「全部显示」只在还没全说完时存在**：两条发言时点完「下一位」，按钮已经换成「听听古树怎么说」/「我还想说一句」（键盘用例因此去掉了这一步，E2E 里 7 条发言时覆盖）。
+5. **「心结解开了」之后按钮不是立刻回来**：要先等大家散开走回位置，断言 timeout 给到 20_000 才稳。
+6. **`useScene()` 不能在 `PaperScene` 外用**（会抛「useScene 必须在 <PaperScene> 内使用」），组件里要判断减弱动画就用 `useReducedMotion()`。
+7. **组件测试里改 store 要包 `act()`**，且 vitest 配置没开 globals → 每个组件测试文件要自己 `afterEach(cleanup)`。
+8. **`vi.mock` 工厂里不能引用顶层 const**（报 "Cannot access 'api' before initialization"）→ 用 `vi.hoisted` 定义假对象。
+9. **点角色那一下会落空**：镜头推进/缩回的那半秒里热区一直在动，量到的坐标已经过时（生产 E2E 里两处「点不开卡片」的偶发都是这么来的：`forest-home.spec.ts` 的 owl、`games.spec.ts` 的第 4 个游戏）。修法：`e2e/helpers.ts` 新增 `settleCamera(page)`（等 `paper-world` 的 m41/m42/m43 不再变，最多 1.5 秒）并在 `tapActor` 里先等它；`forest-home.spec.ts` 的 `openCard()`、`games.spec.ts` 的 `openGame()` 再兜一层「没开出来就重试」（`expect(async () => {...}).toPass()`）。
+10. **「开启体感」会盖在对话框上面**：它和 `PopupCard` 的背景层都是 `z-30`，同一层里谁在 DOM 后面谁在上面 —— 按钮原来写在 `{overlay}` 后面，于是在总结那一屏把卡片的字压住，点它还会落到卡片外面、把话头打断。修法：`PaperScene.tsx` 里把按钮移到 `{overlay}` 之前；`e2e/talk.spec.ts` 加了一条守卫（打分那一屏用 `document.elementFromPoint` 取按钮位置上的元素，必须是对话框而不是按钮；把顺序改回去这条就红，已验证过红→绿）。
+11. **「开始倾诉」一直在森林里**，所以「等它可见」不能当「上一块面板关掉了」用（面板还在的那一瞬间它照样可见）→ 关面板要等那个按钮自己消失（`expect(back).toHaveCount(0)`）。
+
+**验证（2026-10-08，全部真跑过）**：`npm run typecheck`、`npm run lint` 零报错；`npm test` **71 个文件 504 个用例全部通过**（57s）；`npm run build` 成功（生产 E2E 的 webServer 就是 `npm run build && npm run start -p 3100`）；**生产 E2E 全量 46 passed（6.3m）**——quality / onboarding / games / forest-home / talk / devtools / prod 全部 spec × mobile + desktop，中途暴露的 6 个偶发（视差没推到最大、三个 AI 小游戏没 stub、点角色落空、层级盖住卡片、面板没卸干净、按钮等待太短）全部定位并修好，见上面第 1–5、9–11 条；倾诉 E2E（3 个用例 × 两个视口）**6 个通过 / 27.5s**；两视口截图在 `docs/talk/`（打分、圆桌、古树总结），看图确认过层级修复后的总结页不再被「开启体感」压住。任务清单 `openspec/changes/stage2-roundtable/tasks.md` 24 项全部勾选。
+
+**入林说明卡的文案同步改了**（`Onboarding.tsx`）：原来写「本阶段不向外部服务发送内容」已经不对，改成两段——「你的昵称、伙伴和游戏记录，只存在你自己的设备上」与「倾诉时你写下的话，会发给本站的服务端、交给模型帮你生成回应。那边不写日志，也不会把它留下来」。`Onboarding.test.tsx` 有一条守这段文案。
+### 9.10 按产品文档逐节校对第二阶段（`doc-alignment`，2026-10-08 完成）
+
+**为什么**：用户 2026-10-08 提出「感觉很多设计思路都复用了本地另一个叫解忧森林的项目」，要求严格按 `解忧森林-prompt.md` 实现、文档没写的自己设计、不复用那个项目。
+
+**顺手核对的证据（我们确实没读它的源码）**：那个项目在 `/Users/lang/Desktop/比赛/jieyou-forest`（Electron + Capacitor，8 只动物、每只一个剪影色块，标题如「探索破局者」）；我们这边是产品文档第四节那张表里的 7 只（笃笃 / 墨墨 / 阿橘 / 团团 / 慢慢 / 漂漂 / 跳跳），`lib/animals.ts` 用 PuppetPart + 关节点 + `roughPath` / `seeded()` 程序化毛边，两边的 path 数据没有一条相同。导入的 claude-code 历史里 `CampfireCouncil` / `AnimalSprite` / `RingFacts` 这些名字出现 0 次（仅有的两次来自我用 `gh api` 列它的提交标题挑仓库名）。完整审计方法见 `openspec/changes/doc-alignment/proposal.md`。
+
+**改回文档写法的七处**
+
+| 文档条款 | 原来（我自己设计的） | 现在 |
+| --- | --- | --- |
+| 第八节：每条消息先用 Haiku 判风险，三级 none / concern / crisis | 本机粗筛命中才问服务端；等级叫 none / low / high | `lib/ai/schema.ts` 的 `RISK_LEVELS = ["none","concern","crisis"]`；`lib/prompts.ts` 的 `riskPrompt` 三档说明重写；`lib/talk/flow.ts` 的 `needsServerCheck(local) = local !== "crisis"`——**每句话都问服务端**，只有本机已经认出危险词才不打扰它；词表改名 `CRISIS_MARKERS` / `CONCERN_MARKERS` |
+| 第八节 crisis：暂停游戏化、不圆桌、古树认真温和地回应、求助卡给 12356 / 400-161-9995 / 110 / 120（上线前核实）、确认安全后才能继续 | 只有三条出路 +「我还想说，继续吧」直接继续，**故意不写号码** | `lib/talk/guard.ts` 重写：`CRISIS`（`treeSays` 岁岁先说话 +「先停一下，我们慢慢来」+ 三步 + `hotlineTitle`「现在就能接住你的人」+ `confirm`「我现在是安全的」）与 `HOTLINES`（三个号码，注释写明上线前必须再核实）；`components/talk/RiskStage.tsx` 加求助卡与复选框，**勾上才能继续**；`useTalkFlow.checkRisk` 改成顺序——crisis 时 `guard()` 且**根本不发圆桌请求** |
+| 第八节 concern：照常进行，古树在总结里温和地提一句可以寻求专业支持 | 没有这一档 | store 加 `concern` + `markConcern()`；`PromptContext.concern` 传给 `summaryPrompt`（只在为真时多写一句「值得有一个真人陪他一起看」，不吓人、不下结论）；`SummaryStage` 在岁岁整理时显示 `CONCERN_LINE` |
+| 6.3.4 聆听动画：点头、竖耳朵、团团托腮 | 没做 | 新增 `lib/talk/gesture.ts`（`LISTEN_GESTURE`：松鼠竖耳朵、团团托腮、其余点头）与 `lib/puppet/gesture.ts`（每种动作的关键帧与节奏） |
+| 6.3.6 其他动物反应动画：点头、思考、笑 | 没做 | `REACTIONS = ["nod","think","smile"]` + `reactionPlan(cast, speaker, round)`（跳过正在说话的那只，随 `shown` 轮换）；`ForestAnimals` 给每只算 `gestureFor(phase, id, reactions)` |
+| 6.3.6 按钮名「全部显示」 | 我写成「一起说完吧」 | `components/talk/RoundtableStage.tsx` 改名（测试与 E2E 同步） |
+| 6.3.8 点动物头像指定回答人 | 只支持 `@名字` | `FollowUpStage` 加一行 8 个纸偶头像（`role="group"`、`aria-pressed`、热区 ≥44px），点选后提示「这句话会交给：X」；写了 `@名字` 时以文字为准（`lib/talk/flow.ts` 的 `mentionsTarget()` + `useTalkFlow.ask(question, chosen)`） |
+
+**画面上的做法**（`components/puppet/PaperPuppet.tsx` 现有 278 行）：新增 `gesture` / `gestureLoop` 两个 prop 与 `data-gesture` 属性；动作由 `animate()` 直接打在 `[data-part^="head"]` 这类节点上，减弱动画下仍然标出动作但不播；用 `lastGesture` ref 保证同一个动作不会重放；狐狸没有 `arm-*` 部件，`grounded` 过滤后自动退回头部点头。
+
+**验证（2026-10-08）**：`npx vitest run` **74 个文件 526 个用例全部通过**（上轮 71 / 504；新增 `lib/talk/gesture.test.ts`、`lib/puppet/gesture.test.ts`、`components/puppet/PaperPuppet.test.tsx`，并补了危机分支、concern、点头像点名的用例）；`npm run typecheck`、`npm run lint` 零报错；生产 E2E（`playwright.prod.config.ts`）**50 个全部通过（3.5 分钟）**——新增两条守护页用例（本机认出 / 服务端判出，都断言没有发圆桌请求），并在圆桌用例里断言没说话的动物身上有 `data-gesture="nod|think|smile"`。截图新增 `docs/talk/{mobile,desktop}-talk-guard.png`。
+
+**踩到的两个坑**：① `getByRole("alert")` 在 Next 里会同时命中路由播报器 `#__next-route-announcer__`，守护页要写成 `[role="alert"][data-autofocus]`；② 之前 E2E 里点「全部显示」的用例与文案要一起改。
+
+**又补的两处（同一轮的第二次校对）**：① 文档第四节那一列的**语气**进了 Prompt——`lib/prompts.ts` 的 `castBlock()` 每行末尾加「；语气：{tone}」，`replyPrompt` 改成「用 X 自己的语气（tone）与思维方式」；② 「让大家再说说」再请一轮时**带上已经说过的**——`components/talk/useTalkFlow.ts` 的 `startRoundtable(text, history)` 与 `again()`（用 `speechesAsHistory(state.speeches)`），免得第二轮复读；单测补 `lib/prompts.test.ts` 两条与 `components/talk/TalkFlow.test.tsx` 一条，E2E 主流程里加了一段（点「让大家再说说」→ 回到第一句 → 全部显示 → 再请古树总结）。
+
+**还没做的两件事（等用户拍板）**：① 6.3.3 的可选**语音输入**；② 第 5 步那个「不知道找谁？帮我看看」的**引导选伙伴**是产品文档之外加的一步，去留等用户定。
 
 ## 10. 第一阶段实现指南（已完成，留作参考）
 
@@ -893,7 +974,7 @@ interface Memory {
 然后：
 - 运行 git status、openspec list、npm run typecheck、npm run lint、npm test，确认当前状态与 HANDOFF.md 第 2 节是否一致，有差异先告诉我
 - 第 1 阶段 63 项已全部完成并通过全量检查（记录见第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
-- 下一步是第二阶段（倾诉与圆桌，设计草稿在第 11 节）：先和用户确认这次要做的范围，走 OpenSpec 流程拿到批准再动手
+- 第二阶段（倾诉与圆桌）已完成（见 9.8、9.9），并按产品文档 `解忧森林-prompt.md` 逐节校对过一轮（见 9.10）；下一步是第三阶段（沉淀与年轮，设计草稿在第 11.2 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
 
 要求：
 - 用中文沟通

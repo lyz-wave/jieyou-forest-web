@@ -101,3 +101,13 @@
 - 改动规模：已跟踪文件 **51 个、+96 / −65**（其中 26 个是重跑 E2E 重新生成的截图）；新增文本文件 4 个共 **182 行**（PuppetMark 44、PuppetMark.test 30、PaperGlyph 67、no-emoji.test 41）；决策记录截图 `docs/mockups/` 三张共 932K。
 - 验证：单测 54 文件 375 用例通过；typecheck、lint 零报错；开发服务器 E2E（onboarding / forest-home / games × 手机+桌面 = 24 passed，forest-life 开发用例 10 passed）；生产 E2E 38 passed 并重生成截图；两个视口都看过角色卡、选伙伴、敲树洞、熊抱、落叶漂流。
 
+## 2026-10-08 · 第二阶段（倾诉）与按产品文档逐节校对
+
+用户先批准了选伙伴的引导改法并要求开工第二阶段，随后（m04107）提出「感觉很多设计思路都复用了本地另一个叫解忧森林的项目」，要求严格按 `解忧森林-prompt.md` 实现。这一批同时做完了第二阶段和这轮校对。
+
+- 调用数：turn 46–56 **1429 次**。逐轮：46 建 Openspec 7｜47 起手 168｜48 圆桌与总结 332｜49 风险守护与追问 301｜50 调试与截图 196｜51 提交前检查 46｜52 校对开始 33｜54 校对主体 228｜55 校对收尾与提交 96｜56 验收与提交 22。
+- 按工具：run_code 412｜read 327｜bash 265｜edit 162｜write 161｜grep 37｜job_output 22｜compress 16｜validate_dsh_ui 6｜read_image 6｜glob 4｜其余（get_goal / create_goal / update_goal / mnemon_runtime_memory / hindsight_capture_initiative / ask_user_question / job_list）共 11。planning（只读规划）384 次 = **27%**｜写盘 323 次 = 23%｜验证类 bash 120 次 = 8%。
+- 返工 **5 次**：① 生产 E2E 里 `getByRole("alert")` 同时命中 Next 的路由播报器 `#__next-route-announcer__`（48 passed / 2 failed），守护页改用 `[role="alert"][data-autofocus]`；② 在 run_code 里手拼跨行 TS 数组与含反引号的模板字符串，三次语法错误且不落盘，改成 bash heredoc 与 python 脚本落盘；③「让大家再说说」的用例先断言 `shown === 0`，实测是 1（`gotSpeeches` 会把它设成 1），改断言；④ 提交脚本里 `git add lib/ai/routes.ts` 这个路径不存在（只有 `route.ts` 与 `routes.test.ts`），脚本 abort 后改正重跑；⑤ 风险等级改名（none/low/high → none/concern/crisis）带出 8 处测试断言，先红后绿。
+- 改动规模（代码三个提交，对比 e6c4117）：**99 个文件、+5726 / −77**；其中非测试的生产代码 47 个文件 **+2718 / −46**（其余是文档、E2E、截图与 openspec 变更）。
+- 提交：拆成 4 个提交（模型通道 / 倾诉流程 / 引导选伙伴 / 文档与校对记录），前三个都在「工作树正好等于该提交」的状态下跑过全量单测 + typecheck + lint（`git stash push --keep-index` 的做法）。
+- 验证：单测 74 文件 526 用例通过；typecheck、lint 零报错；生产 E2E 50 个全部通过（含危机守护页两条与「再说一轮」）；截图 docs/talk 8 张。
