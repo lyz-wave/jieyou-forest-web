@@ -2,9 +2,9 @@
  * 用户资料（昵称、伙伴动物）。数据只存在本地 IndexedDB；
  * 打不开时（比如部分浏览器的隐私模式）退回内存存储，本次访问仍能正常使用。
  */
-import Dexie, { type EntityTable } from "dexie";
 import type { AnimalId } from "../animals";
 import type { SelfPick } from "../onboarding/selfpick";
+import { DB_NAME, openJieyouDb } from "./db";
 
 export interface Profile {
   nickname: string;
@@ -14,11 +14,6 @@ export interface Profile {
   selfPicks: SelfPick[];
 }
 
-interface ProfileRow extends Profile {
-  /** 只有一份资料，固定主键 */
-  id: "me";
-}
-
 export interface ProfileStore {
   /** false 表示数据只在内存里，关掉页面就没了 */
   readonly persistent: boolean;
@@ -26,50 +21,34 @@ export interface ProfileStore {
   save(profile: Profile): Promise<void>;
 }
 
-class JieyouDB extends Dexie {
-  profile!: EntityTable<ProfileRow, "id">;
-  constructor(name: string) {
-    super(name);
-    // 第 1 版只有资料表；第二、三阶段升级版本加入 sessions、memories
-    this.version(1).stores({ profile: "id" });
-  }
-}
-
 function memoryStore(): ProfileStore {
   let value: Profile | null = null;
   return {
     persistent: false,
     load: async () => value,
-    save: async (p) => {
-      value = p;
+    save: async (next) => {
+      value = next;
     },
   };
 }
 
-const toProfile = (row: ProfileRow): Profile => ({
-  nickname: row.nickname,
-  companion: row.companion,
-  onboardedAt: row.onboardedAt,
-  selfPicks: row.selfPicks ?? [],
-});
-
-export async function createProfileStore(dbName = "jieyou"): Promise<ProfileStore> {
-  if (typeof indexedDB === "undefined" || !indexedDB) return memoryStore();
-  const db = new JieyouDB(dbName);
-  try {
-    await db.open();
-  } catch (err) {
-    console.warn("IndexedDB 不可用，资料只保存在本次访问中", err);
-    return memoryStore();
-  }
+export async function createProfileStore(dbName: string = DB_NAME): Promise<ProfileStore> {
+  const db = await openJieyouDb(dbName);
+  if (!db) return memoryStore();
   return {
     persistent: true,
     load: async () => {
       const row = await db.profile.get("me");
-      return row ? toProfile(row) : null;
+      if (!row) return null;
+      return {
+        nickname: row.nickname,
+        companion: row.companion,
+        onboardedAt: row.onboardedAt,
+        selfPicks: row.selfPicks ?? [],
+      };
     },
-    save: async (p) => {
-      await db.profile.put({ ...p, id: "me" });
+    save: async (next) => {
+      await db.profile.put({ ...next, id: "me" });
     },
   };
 }
