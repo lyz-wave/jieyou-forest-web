@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Speech } from "@/lib/ai/schema";
 import { roundtableOrder } from "@/lib/talk/flow";
 import { useForestStore } from "@/lib/stores/forest";
+import type { Memory } from "@/lib/journal/types";
 import { useTalkStore } from "./talk";
 
 function speechesOf(order: readonly string[]): Speech[] {
@@ -175,5 +176,60 @@ describe("concern 只记一笔", () => {
     expect(state().concern).toBe(true);
     state().open();
     expect(state().concern).toBe(false);
+  });
+});
+
+const MEMORY: Memory = {
+  id: "mem-s-1",
+  sessionId: "s-1",
+  date: "2026-03-05",
+  title: "汇报搞砸了",
+  summary: "一次汇报没做好。",
+  emotions: ["委屈"],
+  themes: ["工作压力"],
+  coreBelief: "我不行",
+  shift: { from: "我整个人不行", to: "一次没做好" },
+  insight: "我可以做得不好，也还是我。",
+  helpfulAnimals: ["owl"],
+};
+
+describe("结束：再次打分、沉淀、成长卡片", () => {
+  beforeEach(() => {
+    useTalkStore.getState().open();
+  });
+
+  it("心结解开了先去再打一次分", () => {
+    useTalkStore.getState().toRate();
+    expect(useTalkStore.getState().phase).toBe("rate");
+    useTalkStore.getState().setMoodAfter(7);
+    expect(useTalkStore.getState().moodAfter).toBe(7);
+    useTalkStore.getState().setMoodAfter(null);
+    expect(useTalkStore.getState().moodAfter).toBeNull();
+  });
+
+  it("沉淀时进生长页，失败留在原地，成了就摆出成长卡片", () => {
+    useTalkStore.getState().toGrow();
+    expect(useTalkStore.getState().phase).toBe("grow");
+    expect(useTalkStore.getState().memoryStatus).toBe("thinking");
+    useTalkStore.getState().memoryFailed();
+    expect(useTalkStore.getState().memoryStatus).toBe("failed");
+    expect(useTalkStore.getState().phase).toBe("grow");
+    useTalkStore.getState().gotMemory(MEMORY);
+    expect(useTalkStore.getState().phase).toBe("card");
+    expect(useTalkStore.getState().memory).toEqual(MEMORY);
+    expect(useTalkStore.getState().memoryStatus).toBe("idle");
+  });
+
+  it("回到森林时把这一次的东西全清掉", () => {
+    useTalkStore.getState().toRate();
+    useTalkStore.getState().setMoodAfter(7);
+    useTalkStore.getState().toGrow();
+    useTalkStore.getState().gotMemory(MEMORY);
+    useTalkStore.getState().finish();
+    const s = useTalkStore.getState();
+    expect(s.phase).toBe("away");
+    expect(s.moodAfter).toBeNull();
+    expect(s.memory).toBeNull();
+    expect(s.memoryStatus).toBe("idle");
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ANIMAL_CAST } from "@/lib/animals";
-import { HEARD_MAX, REPLY_MAX, SPEECH_MAX, SUMMARY_TOTAL_MAX, VOICE_MAX, parseBreakDown, parseReframe, parseReply, parseRisk, parseRoundtable, parseSplitThought, parseSummary } from "./schema";
+import { HEARD_MAX, REPLY_MAX, SPEECH_MAX, SUMMARY_TOTAL_MAX, VOICE_MAX, parseBreakDown, parseReframe, parseReply, parseRisk, parseRoundtable, parseMemory, parseSplitThought, parseSummary } from "./schema";
 import { BREAKDOWN_MAX, BUBBLE_MAX, REFRAME_MAX } from "./types";
 
 const speech = (animal: string, text = "我在听。", mood = "gentle") => ({ animal, text, mood });
@@ -134,5 +134,39 @@ describe("小游戏的三份响应", () => {
     expect(parseBreakDown({ steps: ["一", "", "三"] })).toBeNull();
     expect(parseBreakDown({ steps: ["一", "二", "啊".repeat(BREAKDOWN_MAX + 1)] })).toBeNull();
     expect(parseBreakDown({ steps: ["一", "二", 3] })).toBeNull();
+  });
+});
+describe("沉淀：成长卡片", () => {
+  const draft = {
+    title: "汇报搞砸了",
+    summary: "一次汇报没做好，被自己判成了整个人不行。",
+    emotions: ["委屈", "疲惫"],
+    themes: ["工作压力"],
+    coreBelief: "汇报失败就是我这个人不行",
+    shift: { from: "我整个人不行", to: "一次没做好" },
+    insight: "我可以做得不好，也还是我。",
+    action: "明天先写三行提纲",
+  };
+
+  it("该有的都有就通过", () => {
+    expect(parseMemory(draft)).toEqual(draft);
+  });
+
+  it("多一个字段、标题超 12 字、转变超过 20 字、没有情绪都不通过", () => {
+    expect(parseMemory({ ...draft, extra: 1 })).toBeNull();
+    expect(parseMemory({ ...draft, title: "一二三四五六七八九十十一十二十三" })).toBeNull();
+    expect(parseMemory({ ...draft, shift: { from: "一二三四五六七八九十十一十二十三十四十五十六十七十八十九二十二十一", to: "一次没做好" } })).toBeNull();
+    expect(parseMemory({ ...draft, emotions: [] })).toBeNull();
+  });
+
+  it("标签只留库里的；不在库里就退回「其他」", () => {
+    expect(parseMemory({ ...draft, themes: ["瞎编的", "工作压力"] })).toEqual({ ...draft, themes: ["工作压力"] });
+    expect(parseMemory({ ...draft, themes: ["瞎编的"] })).toEqual({ ...draft, themes: ["其他"] });
+  });
+
+  it("没有小行动也行", () => {
+    const { action, ...rest } = draft;
+    expect(parseMemory(rest)).toEqual(rest);
+    expect(action).toBe("明天先写三行提纲");
   });
 });

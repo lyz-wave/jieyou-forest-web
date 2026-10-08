@@ -23,6 +23,19 @@ import {
   type ThoughtBubble,
   type TrapKind,
 } from "./types";
+import {
+  MEMORY_ACTION_MAX,
+  MEMORY_BELIEF_MAX,
+  MEMORY_EMOTION_MAX,
+  MEMORY_EMOTIONS_MAX,
+  MEMORY_INSIGHT_MAX,
+  MEMORY_SHIFT_MAX,
+  MEMORY_SUMMARY_MAX,
+  MEMORY_THEMES_MAX,
+  MEMORY_TITLE_MAX,
+  sanitizeThemes,
+  type MemoryDraft,
+} from "@/lib/journal/types";
 
 /** 发言时的情绪，驱动动物的反应动画 */
 export const MOODS = ["gentle", "thinking", "playful", "excited", "calm", "serious"] as const;
@@ -244,4 +257,37 @@ export function parseBreakDown(value: unknown): BreakDownResult | null {
     steps.push(item);
   }
   return { steps };
+}
+
+/** 沉淀：成长卡片。标签只留库里的，别的一律不接受 */
+export function parseMemory(value: unknown): MemoryDraft | null {
+  if (!isRecord(value)) return null;
+  if (!hasOnlyKeys(value, ["title", "summary", "emotions", "themes", "coreBelief", "shift", "insight", "action"])) return null;
+  const { title, summary, emotions, themes, coreBelief, shift, insight, action } = value;
+  if (!isText(title, MEMORY_TITLE_MAX) || !isText(summary, MEMORY_SUMMARY_MAX)) return null;
+  if (!isText(coreBelief, MEMORY_BELIEF_MAX) || !isText(insight, MEMORY_INSIGHT_MAX)) return null;
+  if (!Array.isArray(emotions) || emotions.length < 1 || emotions.length > MEMORY_EMOTIONS_MAX) return null;
+  const parsedEmotions: string[] = [];
+  for (const item of emotions) {
+    if (!isText(item, MEMORY_EMOTION_MAX)) return null;
+    parsedEmotions.push(item.trim());
+  }
+  if (!Array.isArray(themes) || themes.length < 1 || themes.length > MEMORY_THEMES_MAX) return null;
+  for (const item of themes) {
+    if (typeof item !== "string") return null;
+  }
+  if (!isRecord(shift) || !hasOnlyKeys(shift, ["from", "to"])) return null;
+  if (!isText(shift.from, MEMORY_SHIFT_MAX) || !isText(shift.to, MEMORY_SHIFT_MAX)) return null;
+  if (action !== undefined && !isText(action, MEMORY_ACTION_MAX)) return null;
+  const draft: MemoryDraft = {
+    title: title.trim(),
+    summary: summary.trim(),
+    emotions: parsedEmotions,
+    themes: sanitizeThemes(themes),
+    coreBelief: coreBelief.trim(),
+    shift: { from: shift.from.trim(), to: shift.to.trim() },
+    insight: insight.trim(),
+  };
+  if (typeof action === "string") draft.action = action.trim();
+  return draft;
 }

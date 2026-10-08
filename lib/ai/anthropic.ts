@@ -5,9 +5,10 @@
  * 由调用方（Route Handler）决定怎么降级，绝不让用户写的话出现在日志里。
  */
 import type { CharacterId } from "@/lib/animals";
-import { breakDownPrompt, reframePrompt, replyPrompt, riskPrompt, roundtablePrompt, splitThoughtPrompt, summaryPrompt, type Prompt, type PromptContext } from "@/lib/prompts";
+import { breakDownPrompt, memoryPrompt, reframePrompt, replyPrompt, riskPrompt, roundtablePrompt, splitThoughtPrompt, summaryPrompt, type Prompt, type PromptContext } from "@/lib/prompts";
 import {
   parseBreakDown,
+  parseMemory,
   parseReframe,
   parseReply,
   parseRisk,
@@ -19,6 +20,7 @@ import {
   type RoundtableResult,
   type TreeSummary,
 } from "./schema";
+import type { MemoryDraft } from "@/lib/journal/types";
 import type { BreakDownResult, ReframeResult, SplitThoughtResult } from "./types";
 
 /** 文档里写的模型名；上线前要确认这两个 ID 真的可用，也可以直接用环境变量换掉 */
@@ -50,6 +52,8 @@ export interface ServerAi {
   summary(context: PromptContext): Promise<TreeSummary | null>;
   reply(context: PromptContext & { target: CharacterId }): Promise<ReplyResult | null>;
   risk(text: string): Promise<RiskResult | null>;
+  /** 结束后把整段对话沉淀成成长卡片（文档 10.4） */
+  memory(context: PromptContext): Promise<MemoryDraft | null>;
   splitThought(text: string): Promise<SplitThoughtResult | null>;
   reframe(text: string): Promise<ReframeResult | null>;
   breakDown(text: string): Promise<BreakDownResult | null>;
@@ -129,6 +133,9 @@ export function createServerAI(options: ServerAiOptions): ServerAi {
     },
     async summary(context) {
       return parseSummary(await ask(summaryPrompt(context), modelMain, MAX_TOKENS_MAIN));
+    },
+    async memory(context) {
+      return parseMemory(await ask(memoryPrompt(context), modelMain, MAX_TOKENS_MAIN));
     },
     async reply(context) {
       return parseReply(await ask(replyPrompt(context), modelMain, MAX_TOKENS_MAIN));

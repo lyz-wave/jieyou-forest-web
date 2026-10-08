@@ -64,6 +64,11 @@ export function readContext(value: unknown): PromptContext | null {
     if (typeof mood !== "number" || !Number.isInteger(mood) || mood < MOOD_MIN || mood > MOOD_MAX) return null;
     context.moodBefore = mood;
   }
+  if (value.moodAfter !== undefined) {
+    const mood = value.moodAfter;
+    if (typeof mood !== "number" || !Number.isInteger(mood) || mood < MOOD_MIN || mood > MOOD_MAX) return null;
+    context.moodAfter = mood;
+  }
   return context;
 }
 

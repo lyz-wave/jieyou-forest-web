@@ -21,6 +21,8 @@ interface ForestState {
   wanderPaused: boolean;
   opened: CharacterId | null;
   openedAt: WorldPos | null;
+  /** 年轮页开着没有 */
+  rings: boolean;
   pendingGame: string | null;
   gameAnimal: AnimalId | null;
   gameAt: WorldPos | null;
@@ -39,6 +41,9 @@ interface ForestState {
   startGame(gameId: string, animal: AnimalId): void;
   /** 游戏面板收起：记下刚玩过的动物，走动恢复 */
   closeGame(): void;
+  /** 去古树里看年轮 */
+  openRings(): void;
+  closeRings(): void;
 }
 
 export const useForestStore = create<ForestState>()((set) => ({
@@ -48,6 +53,7 @@ export const useForestStore = create<ForestState>()((set) => ({
   wanderPaused: false,
   opened: null,
   openedAt: null,
+  rings: false,
   pendingGame: null,
   gameAnimal: null,
   gameAt: null,
@@ -69,6 +75,8 @@ export const useForestStore = create<ForestState>()((set) => ({
   closeCard: () => set({ opened: null, openedAt: null, wanderPaused: false }),
   startGame: (pendingGame, gameAnimal) =>
     set((s) => ({ pendingGame, gameAnimal, gameAt: s.openedAt, opened: null, openedAt: null, wanderPaused: true })),
+  openRings: () => set({ rings: true, opened: null, openedAt: null, wanderPaused: true }),
+  closeRings: () => set({ rings: false, wanderPaused: false }),
   closeGame: () =>
     set((s) => {
       // 没开着游戏时按 Esc 不算玩过一次

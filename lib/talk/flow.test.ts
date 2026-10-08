@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Speech } from "@/lib/ai/schema";
+import type { TreeSummary } from "@/lib/ai/schema";
 import { ANIMAL_CAST } from "@/lib/animals";
 import {
   localGuard,
@@ -10,7 +11,17 @@ import {
   reveal,
   roundtableOrder,
   speechesAsHistory,
+  summaryText,
+  toTalkLog,
 } from "./flow";
+
+const SUMMARY: TreeSummary = {
+  heard: "汇报搞砸了，你觉得自己不行。",
+  voices: [{ animal: "owl", point: "分清事实和猜测" }],
+  thought: "像一片叶子落下来，先不用急着扫走它。",
+  nextStep: "明天先写三行提纲。",
+  question: "如果是朋友搞砸了，你会怎么对他说？",
+};
 
 describe("圆桌的顺序", () => {
   it("今天的伙伴先说，其余按固定顺序，同一次会话里两次算出来一样", () => {
@@ -104,5 +115,30 @@ describe("指名到某一位", () => {
     expect(mentionsTarget("@岁岁 你在吗")).toBe(true);
     expect(mentionsTarget("@某个陌生人 在吗")).toBe(false);
     expect(mentionsTarget("我还是想不通")).toBe(false);
+  });
+});
+
+describe("把一次倾诉交给年轮", () => {
+  it("古树总结拼成一段留档的话", () => {
+    const text = summaryText(SUMMARY);
+    expect(text).toContain(SUMMARY.heard);
+    expect(text).toContain("墨墨：");
+    expect(text).toContain(SUMMARY.nextStep);
+  });
+
+  it("记录里原话在最前，七只发言标出点过「说到心里了」的那只，古树总结跟在后面", () => {
+    const log = toTalkLog({
+      startedAt: 5,
+      text: "这次汇报我觉得搞砸了。",
+      speeches: [{ animal: "fox", text: "汇报只是一次汇报。" }],
+      summary: SUMMARY,
+      replies: [{ speaker: "tree", text: "你想先做哪一件？" }],
+      marked: ["fox"],
+    });
+    expect(log.startedAt).toBe(5);
+    expect(log.speeches[0]).toEqual({ speaker: "fox", text: "汇报只是一次汇报。" });
+    expect(log.summary).toBe(summaryText(SUMMARY));
+    expect(log.replies).toEqual([{ speaker: "tree", text: "你想先做哪一件？" }]);
+    expect(log.marked).toEqual(["fox"]);
   });
 });

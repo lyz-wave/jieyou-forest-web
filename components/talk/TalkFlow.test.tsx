@@ -8,6 +8,8 @@ import type { RiskResult, RoundtableResult, TreeSummary } from "@/lib/ai/schema"
 import { TALK_MAX } from "@/lib/ai/request";
 import { useForestStore } from "@/lib/stores/forest";
 import { useSceneStore } from "@/lib/stores/scene";
+import type { MemoryDraft } from "@/lib/journal/types";
+import { useJournalStore } from "@/lib/stores/journal";
 import { useTalkStore } from "@/lib/stores/talk";
 import { TalkFlow } from "./TalkFlow";
 
@@ -18,6 +20,7 @@ const api = vi.hoisted(() => ({
   summary: vi.fn<(context: unknown) => Promise<TreeSummary>>(),
   reply: vi.fn<(context: unknown, target: unknown) => Promise<{ speaker: "owl" | "tree"; text: string }>>(),
   risk: vi.fn<(text: string) => Promise<RiskResult>>(),
+  memory: vi.fn<(context: unknown) => Promise<MemoryDraft>>(),
 }));
 
 vi.mock("@/lib/talk/client", () => ({ talkApi: api }));
@@ -35,6 +38,17 @@ const SUMMARY: TreeSummary = {
   thought: "一次汇报不等于你这个人。",
   nextStep: "明天先写三行提纲。",
   question: "如果是朋友搞砸了，你会怎么说他？",
+};
+
+const DRAFT: MemoryDraft = {
+  title: "汇报搞砸了",
+  summary: "一次汇报没做好，觉得自己整个人不行。",
+  emotions: ["委屈", "疲惫"],
+  themes: ["工作压力"],
+  coreBelief: "我不行",
+  shift: { from: "我整个人不行", to: "一次没做好" },
+  insight: "我可以做得不好，也还是我。",
+  action: "明天先写三行提纲",
 };
 
 function forest(): void {
@@ -61,6 +75,7 @@ beforeEach(() => {
   api.summary.mockResolvedValue(SUMMARY);
   api.reply.mockResolvedValue({ speaker: "owl", text: "那我们先分一分。" });
   api.risk.mockResolvedValue({ risk: "none" });
+  api.memory.mockResolvedValue(DRAFT);
 });
 
 describe("一次倾诉走到底", () => {
@@ -96,7 +111,7 @@ describe("一次倾诉走到底", () => {
     await user.click(screen.getByRole("button", { name: "听听古树怎么说" }));
     expect(await screen.findByTestId("summary-question")).toBeTruthy();
     expect(screen.getByTestId("summary-heard").textContent).toBe(SUMMARY.heard);
-    await user.click(screen.getByRole("button", { name: "心结解开了" }));
+    await user.click(screen.getByRole("button", { name: "先放一放" }));
     await waitFor(() => {
       expect(screen.queryByRole("heading", { name: "岁岁说" })).toBeNull();
     });
@@ -252,7 +267,8 @@ describe("只用键盘", () => {
     await waitFor(() => expect(api.reply).toHaveBeenCalledTimes(1));
     expect(api.reply.mock.calls[0][1]).toBe("owl");
 
-    const done = screen.getByRole("button", { name: "心结解开了" });
+    // 第三阶段起「心结解开了」先去打分页；键盘这条路走「先放一放」，把这一次存下来回森林
+    const done = screen.getByRole("button", { name: "先放一放" });
     await tabTo(user, done);
     await user.keyboard("{Enter}");
     await waitFor(() => expect(useTalkStore.getState().phase).toBe("away"));
@@ -339,5 +355,68 @@ describe("让大家再说说", () => {
     await waitFor(() => {
       expect(screen.getAllByTestId("talk-speech")).toHaveLength(1);
     });
+  });
+});
+
+describe("心结解开了之后", () => {
+  beforeEach(async () => {
+    await useJournalStore.getState().load();
+    await useJournalStore.getState().clear();
+  });
+
+  async function toSummary(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+    forest();
+    await user.click(screen.getByRole("button", { name: /开始倾诉/ }));
+    await user.click(screen.getByRole("button", { name: "心情 4 分" }));
+    await user.type(screen.getByLabelText("想说的话"), "这次汇报我觉得搞砸了。");
+    await user.click(screen.getByRole("button", { name: "说给它听" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("talk-speech")).toBeTruthy();
+    });
+    await user.click(screen.getByRole("button", { name: "全部显示" }));
+    await user.click(screen.getByRole("button", { name: "听听古树怎么说" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("summary-heard")).toBeTruthy();
+    });
+  }
+
+  it("再打一次分，年轮长出新的一圈，成长卡片把这一次收进来", async () => {
+    const user = userEvent.setup({ delay: null });
+    await toSummary(user);
+    await user.click(screen.getByRole("button", { name: "心结解开了" }));
+    expect(screen.getByRole("heading", { name: "现在心里松一点了吗？" })).toBeTruthy();
+    expect(screen.getByText("进来的时候是 4 分。")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "心情 8 分" }));
+    await user.click(screen.getByRole("button", { name: "看看这次留下了什么" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("growth-card")).toBeTruthy();
+    });
+    expect(screen.getByTestId("growth-mood").textContent).toContain("8");
+    expect(screen.getByTestId("growth-card").textContent).toContain("从「我整个人不行」到「一次没做好」");
+    expect(api.memory).toHaveBeenCalledTimes(1);
+    const asked = api.memory.mock.calls[0][0] as { moodAfter?: number; text?: string };
+    expect(asked.moodAfter).toBe(8);
+    expect(asked.text).toBe("这次汇报我觉得搞砸了。");
+    const memories = useJournalStore.getState().memories;
+    expect(memories.length).toBe(1);
+    expect(memories[0].moodBefore).toBe(4);
+    expect(memories[0].moodAfter).toBe(8);
+    expect(useJournalStore.getState().paused).toBeNull();
+    await user.click(screen.getByRole("button", { name: "收好，回到森林" }));
+    expect(useTalkStore.getState().phase).toBe("away");
+  });
+
+  it("先放一放：这一次先留在库里，回森林不沉淀", async () => {
+    const user = userEvent.setup({ delay: null });
+    await toSummary(user);
+    await user.click(screen.getByRole("button", { name: "先放一放" }));
+    await waitFor(() => {
+      expect(useJournalStore.getState().paused).not.toBeNull();
+    });
+    expect(useJournalStore.getState().paused?.status).toBe("paused");
+    expect(useJournalStore.getState().paused?.messages.length).toBeGreaterThan(1);
+    expect(useJournalStore.getState().memories).toEqual([]);
+    expect(api.memory).not.toHaveBeenCalled();
+    expect(useTalkStore.getState().phase).toBe("away");
   });
 });

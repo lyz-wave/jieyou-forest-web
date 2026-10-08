@@ -8,7 +8,7 @@ import { useTalkStore } from "@/lib/stores/talk";
 import type { TalkFlow } from "./useTalkFlow";
 
 /** 古树的总结：我听到的、森林的声音、一个念头、一小步、一个问题。 */
-export function SummaryStage({ flow, onLeave }: { flow: TalkFlow; onLeave: () => void }): ReactElement {
+export function SummaryStage({ flow, onPause }: { flow: TalkFlow; onPause: () => void }): ReactElement {
   const summary = useTalkStore((s) => s.summary);
   const concern = useTalkStore((s) => s.concern);
 
@@ -81,14 +81,16 @@ export function SummaryStage({ flow, onLeave }: { flow: TalkFlow; onLeave: () =>
       <div className="mt-1 flex flex-col gap-2 border-t border-dashed border-[var(--paper-shadow)] pt-4">
         <button
           type="button"
-          onClick={onLeave}
+          onClick={() => {
+            useTalkStore.getState().toRate();
+          }}
           className="paper-button min-h-11 px-5 py-3 text-base"
         >
           心结解开了
         </button>
         <button
           type="button"
-          onClick={onLeave}
+          onClick={onPause}
           className="min-h-11 text-sm text-ink-soft underline decoration-dotted"
         >
           先放一放

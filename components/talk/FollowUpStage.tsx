@@ -15,7 +15,7 @@ function nameOf(id: CharacterId): string {
 }
 
 /** 追问：还想跟谁说一句就说；点头像或写 @墨墨 都能指名。 */
-export function FollowUpStage({ flow, onLeave }: { flow: TalkFlow; onLeave: () => void }): ReactElement {
+export function FollowUpStage({ flow, onPause }: { flow: TalkFlow; onPause: () => void }): ReactElement {
   const replies = useTalkStore((s) => s.replies);
   const [draft, setDraft] = useState("");
   const [picked, setPicked] = useState<CharacterId | null>(null);
@@ -100,12 +100,18 @@ export function FollowUpStage({ flow, onLeave }: { flow: TalkFlow; onLeave: () =
         </button>
       </div>
       <div className="flex flex-col gap-2 border-t border-dashed border-[var(--paper-shadow)] pt-4">
-        <button type="button" onClick={onLeave} className="paper-button min-h-11 px-5 py-3 text-base">
+        <button
+          type="button"
+          onClick={() => {
+            useTalkStore.getState().toRate();
+          }}
+          className="paper-button min-h-11 px-5 py-3 text-base"
+        >
           心结解开了
         </button>
         <button
           type="button"
-          onClick={onLeave}
+          onClick={onPause}
           className="min-h-11 text-sm text-ink-soft underline decoration-dotted"
         >
           先放一放

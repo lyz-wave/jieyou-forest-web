@@ -5,6 +5,7 @@
  */
 import { ANIMALS, ANIMAL_CAST, type AnimalId, type CharacterId } from "./animals";
 import type { Speaker } from "./ai/types";
+import { THEMES } from "./journal/types";
 
 /** 对话记录最多带几条：越靠后越重要，也越省钱 */
 export const HISTORY_MAX = 12;
@@ -20,6 +21,8 @@ export interface PromptContext {
   text: string;
   /** 心情分 1–10，跳过则没有 */
   moodBefore?: number;
+  /** 说完之后再打一次分（沉淀成成长卡片时用） */
+  moodAfter?: number;
   /** 风险检测记了一笔 concern：总结里要温和地提一句找真人支持 */
   concern?: boolean;
   /** 小游戏留下的上下文（内存里最多 20 条） */
@@ -198,4 +201,32 @@ export function breakDownPrompt(text: string): Prompt {
     '{"steps":["今天先写下汇报的开头两句","..."]}',
   ].join("\n");
   return { system, user: text };
+}
+
+/** 10.4 记忆沉淀：把整段对话交上去，换回一张成长卡片 */
+export function memoryPrompt(context: PromptContext): Prompt {
+  const system = [
+    "你在帮「解忧森林」把一次倾诉沉淀成一张成长卡片。你不是心理医生，只是把它记下来的人。",
+    "",
+    "规矩：",
+    "- title：给这次起的名字，不超过 12 字，写得像他自己会说的话。",
+    "- summary：不超过 60 字，只写他这次说的事和感受，不评价、不指导。",
+    "- emotions：他这次的情绪，1–5 个词。",
+    "- themes：只能从这些里挑 1–3 个：" + THEMES.join(" / ") + "。一个都不要自造。",
+    "- coreBelief：当时困住他的那句话，用他原来的说法，不超过 40 字。",
+    "- shift：从「……」到「……」——from 和 to 各不超过 20 字，写他这次松开的那一点。",
+    "- insight：一句话领悟，用他的第一人称（「我……」），不超过 40 字。",
+    "- action：他今天或这周能做的一件小事，不超过 30 字；说不出来就省略这个字段。",
+    ...PLAIN_STYLE.slice(2, 4).map((line) => "- " + line),
+    "- 只输出 JSON，不要解释，不要 Markdown 代码块。",
+    "",
+    '输出形状：{"title":"……","summary":"……","emotions":["委屈","疲惫"],"themes":["工作压力"],"coreBelief":"……","shift":{"from":"……","to":"……"},"insight":"我……","action":"……"}',
+  ].join("\n");
+  const user = [
+    ...contextBlock(context),
+    ...(typeof context.moodAfter === "number" ? ["", "说完之后他自己打的分（1–10）：" + String(context.moodAfter)] : []),
+    "",
+    "请把这次倾诉沉淀成一张成长卡片。",
+  ].join("\n");
+  return { system, user };
 }

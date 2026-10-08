@@ -6,6 +6,7 @@ import { POST as replyPost } from "@/app/api/reply/route";
 import { POST as splitThoughtPost } from "@/app/api/split-thought/route";
 import { POST as riskPost } from "@/app/api/risk/route";
 import { POST as roundtablePost } from "@/app/api/roundtable/route";
+import { POST as memoryPost } from "@/app/api/memory/route";
 import { POST as summaryPost } from "@/app/api/summary/route";
 import type { ServerAi } from "./anthropic";
 import type { Speech, TreeSummary } from "./schema";
@@ -28,6 +29,15 @@ function fakeAI(overrides: Partial<ServerAi> = {}): ServerAi {
     reframe: async () => ({ versions: [{ kind: "humor", text: "就当练手" }, { kind: "warm", text: "你已经很努力了" }, { kind: "realistic", text: "这次有几个地方没讲清" }] }),
     breakDown: async () => ({ steps: ["先把开头两句写下来", "给他发一条消息", "设个闹钟提醒自己"] }),
     summary: async () => summary,
+    memory: async () => ({
+      title: "汇报搞砸了",
+      summary: "一次汇报没做好，被自己判成了整个人不行。",
+      emotions: ["委屈"],
+      themes: ["工作压力"],
+      coreBelief: "汇报失败就是我这个人不行",
+      shift: { from: "我整个人不行", to: "一次没做好" },
+      insight: "我可以做得不好，也还是我。",
+    }),
     reply: async () => ({ speaker: "tree", text: "我在听。" }),
     risk: async () => ({ risk: "none" }),
     ...overrides,
@@ -43,6 +53,7 @@ const BODIES = {
   "/api/summary": context,
   "/api/reply": { ...context, target: "tree" },
   "/api/risk": { text: "我不想活了" },
+  "/api/memory": { ...context, moodAfter: 7 },
 } as const;
 
 const ROUTES = {
@@ -53,6 +64,7 @@ const ROUTES = {
   "/api/summary": summaryPost,
   "/api/reply": replyPost,
   "/api/risk": riskPost,
+  "/api/memory": memoryPost,
 };
 
 async function callRoute(url: keyof typeof ROUTES, body: unknown): Promise<{ status: number; payload: unknown }> {
@@ -105,7 +117,7 @@ describe("四个接口", () => {
         risk: async () => { calls.risk += 1; return { risk: "none" }; },
       }),
     );
-    for (const url of ["/api/roundtable", "/api/summary", "/api/reply", "/api/split-thought", "/api/reframe", "/api/break-down"] as const) {
+    for (const url of ["/api/roundtable", "/api/summary", "/api/reply", "/api/split-thought", "/api/reframe", "/api/break-down", "/api/memory"] as const) {
       expect(await callRoute(url, { ...context, text: "" })).toEqual({ status: 400, payload: { ok: false, reason: "invalid" } });
       expect(await callRoute(url, "这不是 JSON")).toEqual({ status: 400, payload: { ok: false, reason: "invalid" } });
     }
@@ -131,6 +143,7 @@ describe("四个接口", () => {
         splitThought: async () => null,
         reframe: async () => null,
         breakDown: async () => null,
+        memory: async () => null,
       }),
     );
     for (const [url, body] of Object.entries(BODIES) as [keyof typeof ROUTES, unknown][]) {

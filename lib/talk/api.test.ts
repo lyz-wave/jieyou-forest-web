@@ -76,3 +76,22 @@ describe("倾诉要的四件事", () => {
     await expect(createTalkApi({ fetch: offline }).risk("我撑不住了")).rejects.toThrow(AI_FAILURE_LINE);
   });
 });
+describe("沉淀", () => {
+  const DRAFT = {
+    title: "汇报搞砸了",
+    summary: "一次汇报没做好，被自己判成了整个人不行。",
+    emotions: ["委屈"],
+    themes: ["工作压力"],
+    coreBelief: "汇报失败就是我这个人不行",
+    shift: { from: "我整个人不行", to: "一次没做好" },
+    insight: "我可以做得不好，也还是我。",
+  };
+
+  it("打 /api/memory，把整段对话与心情变化交上去", async () => {
+    const mem = stub(DRAFT);
+    const context = { ...CONTEXT, moodBefore: 4, moodAfter: 7 };
+    await expect(createTalkApi({ fetch: mem.fetchFn }).memory(context)).resolves.toEqual(DRAFT);
+    expect(mem.calls[0].url).toBe("/api/memory");
+    expect(JSON.parse(String(mem.calls[0].init.body))).toEqual(context);
+  });
+});

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ANIMALS, ANIMAL_CAST } from "@/lib/animals";
-import { HISTORY_MAX, breakDownPrompt, reframePrompt, replyPrompt, riskPrompt, roundtablePrompt, splitThoughtPrompt, summaryPrompt } from "./prompts";
+import { HISTORY_MAX, breakDownPrompt, memoryPrompt, reframePrompt, replyPrompt, riskPrompt, roundtablePrompt, splitThoughtPrompt, summaryPrompt } from "./prompts";
 
 const context = {
   nickname: "小满",
@@ -165,5 +165,40 @@ describe("语气（第四节那一列）", () => {
   it("追问时按那只动物的语气说话，古树也一样", () => {
     expect(replyPrompt({ ...context, target: "owl" }).system).toContain(ANIMALS.owl.tone);
     expect(replyPrompt({ ...context, target: "tree" }).system).toContain(ANIMALS.tree.tone);
+  });
+});
+
+describe("记忆沉淀 Prompt", () => {
+  const talk = {
+    nickname: "小满",
+    companion: "owl" as const,
+    text: "这次汇报我觉得搞砸了。",
+    moodBefore: 4,
+    moodAfter: 7,
+    history: [
+      { speaker: "user" as const, content: "这次汇报我觉得搞砸了。" },
+      { speaker: "owl" as const, content: "事实和猜测可以分开看。" },
+    ],
+  };
+
+  it("带上整段对话与心情变化", () => {
+    const prompt = memoryPrompt(talk);
+    expect(prompt.user).toContain("这次汇报我觉得搞砸了。");
+    expect(prompt.user).toContain("事实和猜测可以分开看。");
+    expect(prompt.user).toContain("4");
+    expect(prompt.user).toContain("7");
+  });
+
+  it("规矩：第一人称、字数上限、标签只能从库里挑、只输出 JSON", () => {
+    const prompt = memoryPrompt(talk);
+    expect(prompt.system).toContain("第一人称");
+    expect(prompt.system).toContain("12");
+    expect(prompt.system).toContain("20");
+    expect(prompt.system).toContain("工作压力");
+    expect(prompt.system).toContain("其他");
+    expect(prompt.system).toContain("不要 Markdown");
+    for (const key of ["title", "summary", "emotions", "themes", "coreBelief", "shift", "insight", "action"]) {
+      expect(prompt.system).toContain(key);
+    }
   });
 });

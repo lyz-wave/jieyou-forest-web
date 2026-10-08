@@ -1,16 +1,31 @@
 import { create } from "zustand";
 import type { AnimalId, CharacterId } from "../animals";
 import type { RiskLevel, Speech, TreeSummary } from "../ai/schema";
+import type { Memory } from "../journal/types";
 import { roundtableOrder } from "../talk/flow";
 import { useForestStore } from "./forest";
 
 /**
  * 一次倾诉的过程。
  * away 不在倾诉 → mood 打分与写字 → listening 大家都在听 →
- * risk 先停一停（高风险）→ roundtable 圆桌发言 → summary 古树总结 → followup 继续聊
- * 这一阶段结束时全都清掉，不写数据库。
+ * risk 先停一停（高风险）→ roundtable 圆桌发言 → summary 古树总结 → followup 继续聊 →
+ * rate 再说说这次的心情 → grow 岁岁把它收进年轮 → card 成长卡片。
+ * 前六个阶段在上一步结束时清掉、不写库；rate 之后的东西才写进年轮。
  */
-export type TalkPhase = "away" | "mood" | "listening" | "risk" | "roundtable" | "summary" | "followup";
+export type TalkPhase =
+  | "away"
+  | "mood"
+  | "listening"
+  | "risk"
+  | "roundtable"
+  | "summary"
+  | "followup"
+  | "rate"
+  | "grow"
+  | "card";
+
+/** 沉淀这件事进行到哪儿了 */
+export type MemoryStatus = "idle" | "thinking" | "failed";
 
 export interface TalkReply {
   speaker: CharacterId;
@@ -20,8 +35,10 @@ export interface TalkReply {
 /** 追问的回复最多留这么多条，再多的从最前面丢 */
 export const REPLY_KEEP = 20;
 
-interface TalkState {
+export interface TalkState {
   phase: TalkPhase;
+  /** 这一次是什么时候开始的（写进会话与记忆的 id 都用它） */
+  startedAt: number;
   mood: number | null;
   text: string;
   risk: RiskLevel;
@@ -40,6 +57,11 @@ interface TalkState {
   bubble: string | null;
   summary: TreeSummary | null;
   replies: TalkReply[];
+  /** 说完了之后他自己又打的那次分 */
+  moodAfter: number | null;
+  /** 沉淀下来的成长卡片 */
+  memory: Memory | null;
+  memoryStatus: MemoryStatus;
   open(): void;
   setMood(mood: number | null): void;
   setText(text: string): void;
@@ -55,6 +77,13 @@ interface TalkState {
   markConcern(concern: boolean): void;
   resume(): void;
   toSummary(summary: TreeSummary): void;
+  /** 「心结解开了」：先再打一次分 */
+  toRate(): void;
+  setMoodAfter(mood: number | null): void;
+  /** 进生长页，岁岁开始把这次收进年轮 */
+  toGrow(): void;
+  memoryFailed(): void;
+  gotMemory(memory: Memory): void;
   toFollowUp(): void;
   addReply(reply: TalkReply): void;
   again(): void;
@@ -63,6 +92,7 @@ interface TalkState {
 
 const EMPTY = {
   phase: "away" as TalkPhase,
+  startedAt: 0,
   mood: null,
   text: "",
   risk: "none" as RiskLevel,
@@ -75,6 +105,9 @@ const EMPTY = {
   bubble: null as string | null,
   summary: null,
   replies: [] as TalkReply[],
+  moodAfter: null as number | null,
+  memory: null as Memory | null,
+  memoryStatus: "idle" as MemoryStatus,
 };
 
 /** 同一只动物只说一次；第一次出现的那段留下 */
@@ -91,7 +124,7 @@ function dedupe(speeches: Speech[]): Speech[] {
 
 export const useTalkStore = create<TalkState>()((set) => ({
   ...EMPTY,
-  open: () => set({ ...EMPTY, phase: "mood" }),
+  open: () => set({ ...EMPTY, phase: "mood", startedAt: Date.now() }),
   setMood: (mood) => set({ mood }),
   setText: (text) => set({ text }),
   submit: () => set({ phase: "listening" }),
@@ -128,6 +161,11 @@ export const useTalkStore = create<TalkState>()((set) => ({
   markConcern: (concern) => set({ concern }),
   resume: () => set((s) => ({ phase: s.speeches.length > 0 ? "roundtable" : "listening" })),
   toSummary: (summary) => set({ summary, phase: "summary" }),
+  toRate: () => set({ phase: "rate" }),
+  setMoodAfter: (moodAfter) => set({ moodAfter }),
+  toGrow: () => set({ phase: "grow", memoryStatus: "thinking" }),
+  memoryFailed: () => set({ memoryStatus: "failed" }),
+  gotMemory: (memory) => set({ memory, phase: "card", memoryStatus: "idle" }),
   toFollowUp: () => set({ phase: "followup" }),
   addReply: (reply) =>
     set((s) => ({ replies: [...s.replies, reply].slice(-REPLY_KEEP), phase: "followup" })),

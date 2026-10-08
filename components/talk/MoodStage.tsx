@@ -12,7 +12,9 @@ const MOODS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 export function MoodStage({ onSpeak }: { onSpeak: (text: string) => void }): ReactElement {
   const mood = useTalkStore((s) => s.mood);
   const setMood = useTalkStore((s) => s.setMood);
-  const [text, setText] = useState("");
+  /** 从「上次那件事」接着聊时，框里已经放着上次那句 */
+  const saved = useTalkStore((s) => s.text);
+  const [text, setText] = useState(saved);
   const input = useRef<HTMLTextAreaElement | null>(null);
   const count = textLength(text);
   const canSpeak = count > 0;

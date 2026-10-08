@@ -1,13 +1,30 @@
 import { useCallback, useRef, useState } from "react";
 import type { CharacterId } from "@/lib/animals";
 import type { RiskLevel } from "@/lib/ai/schema";
+import type { TalkLog } from "@/lib/journal/settle";
 import type { PromptContext } from "@/lib/prompts";
 import { talkApi } from "@/lib/talk/client";
-import { localGuard, mentionsTarget, needsServerCheck, parseMention, replyHistory, speechesAsHistory } from "@/lib/talk/flow";
+import {
+  localGuard,
+  mentionsTarget,
+  needsServerCheck,
+  parseMention,
+  replyHistory,
+  speechesAsHistory,
+  toTalkLog,
+} from "@/lib/talk/flow";
+import {
+  helpfulAnimalsOf,
+  localDate,
+  memoryFromDraft,
+  messagesFromTalk,
+  sessionFromTalk,
+} from "@/lib/journal/settle";
 import { useAppStore } from "@/lib/stores/app";
 import { useForestStore } from "@/lib/stores/forest";
 import { useGameContextStore } from "@/lib/stores/gameContext";
-import { useTalkStore } from "@/lib/stores/talk";
+import { useJournalStore } from "@/lib/stores/journal";
+import { useTalkStore, type TalkState } from "@/lib/stores/talk";
 
 export type AskStatus = "idle" | "thinking" | "failed";
 
@@ -26,6 +43,10 @@ export interface TalkFlow {
   retryReply(): void;
   /** 让大家就同一件事再说一轮 */
   again(): void;
+  /** 「心结解开了」之后：把这一次收进年轮（成了给成长卡片，接不上就留在生长页） */
+  settle(): void;
+  /** 「先放一放」：把这一次存成暂存的会话，下次进森林再接着说 */
+  pause(): void;
 }
 
 /** 拼一份上下文：昵称、今天的伙伴、小游戏留下的、心情分都用当前的界面状态 */
@@ -35,18 +56,20 @@ function useContext(): (text: string, history: PromptContext["history"]) => Prom
   const gameContext = useGameContextStore((s) => s.entries);
   const mood = useTalkStore((s) => s.mood);
   const concern = useTalkStore((s) => s.concern);
+  const moodAfter = useTalkStore((s) => s.moodAfter);
   return useCallback(
     (text, history) => ({
       nickname: nickname.trim() === "" ? "你" : nickname.trim(),
       companion,
       text,
       moodBefore: mood ?? undefined,
+      moodAfter: moodAfter ?? undefined,
       concern,
       gameContext,
       memories: [],
       history: history ?? [],
     }),
-    [nickname, companion, gameContext, mood, concern],
+    [nickname, companion, gameContext, mood, moodAfter, concern],
   );
 }
 
@@ -181,7 +204,94 @@ export function useTalkFlow(): TalkFlow {
     startRoundtable(state.text, history);
   }, [startRoundtable]);
 
-  return { roundStatus, summaryStatus, replyStatus, speak, retryRound, summarize, retrySummary, ask, retryReply, again };
+  /** 这一次说过什么、谁被点过「说到心里了」，整理成留档的形状 */
+  const logOf = useCallback((state: TalkState): TalkLog => {
+    return toTalkLog({
+      startedAt: state.startedAt,
+      text: state.text,
+      speeches: state.speeches.map((speech) => ({ animal: speech.animal, text: speech.text })),
+      summary: state.summary,
+      replies: state.replies,
+      marked: state.marked,
+    });
+  }, []);
+
+  /** 把这一次收进年轮（文档 6.3.9）：整段对话交给服务端沉淀，写进库里再摆出成长卡片 */
+  const settle = useCallback((): void => {
+    const state = useTalkStore.getState();
+    state.toGrow();
+    const id = ++run.current;
+    const history = replyHistory(state.text, state.speeches, state.replies);
+    const context: PromptContext = { ...contextOf(state.text, history), moodAfter: state.moodAfter ?? undefined };
+    void talkApi
+      .memory(context)
+      .then(async (draft) => {
+        if (id !== run.current) return;
+        const sessionId = "s-" + String(state.startedAt);
+        const messages = messagesFromTalk(logOf(state));
+        const memory = memoryFromDraft({
+          draft,
+          sessionId,
+          date: localDate(new Date()),
+          helpfulAnimals: helpfulAnimalsOf(messages),
+          moodBefore: state.mood ?? undefined,
+          moodAfter: state.moodAfter ?? undefined,
+        });
+        const session = sessionFromTalk({
+          id: sessionId,
+          startedAt: state.startedAt,
+          endedAt: Date.now(),
+          status: "resolved",
+          companion: useForestStore.getState().companion,
+          moodBefore: state.mood ?? undefined,
+          moodAfter: state.moodAfter ?? undefined,
+          gameContext: useGameContextStore.getState().entries,
+          messages,
+        });
+        const journal = useJournalStore.getState();
+        await journal.addMemory(memory);
+        await journal.putSession(session);
+        useTalkStore.getState().gotMemory(memory);
+      })
+      .catch(() => {
+        if (id !== run.current) return;
+        useTalkStore.getState().memoryFailed();
+      });
+  }, [contextOf, logOf]);
+
+  /** 先放一放（文档 6.3.9）：这一次留在库里，下次进森林古树会问要不要接着说 */
+  const pause = useCallback((): void => {
+    const state = useTalkStore.getState();
+    const sessionId = "s-" + String(state.startedAt);
+    void useJournalStore.getState().putSession(
+      sessionFromTalk({
+        id: sessionId,
+        startedAt: state.startedAt,
+        endedAt: Date.now(),
+        status: "paused",
+        companion: useForestStore.getState().companion,
+        moodBefore: state.mood ?? undefined,
+        moodAfter: state.moodAfter ?? undefined,
+        gameContext: useGameContextStore.getState().entries,
+        messages: messagesFromTalk(logOf(state)),
+      }),
+    );
+  }, [logOf]);
+
+  return {
+    roundStatus,
+    summaryStatus,
+    replyStatus,
+    speak,
+    retryRound,
+    summarize,
+    retrySummary,
+    ask,
+    retryReply,
+    again,
+    settle,
+    pause,
+  };
 }
 
 /** 只给界面用：判断一句里有没有指名 */

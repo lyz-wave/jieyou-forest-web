@@ -1,6 +1,7 @@
 import { ANIMAL_CAST, ANIMALS, type AnimalId, type CharacterId } from "@/lib/animals";
 import type { Speaker } from "@/lib/ai/types";
-import type { RiskLevel, Speech } from "@/lib/ai/schema";
+import type { RiskLevel, Speech, TreeSummary } from "@/lib/ai/schema";
+import type { TalkLog } from "@/lib/journal/settle";
 
 /** 圆桌的顺序：今天的伙伴先说，其余按古树周围的固定位置排 */
 export function roundtableOrder(companion: AnimalId): AnimalId[] {
@@ -124,4 +125,34 @@ export function replyHistory(
     ...speechesAsHistory(speeches),
     ...replies.map((reply) => ({ speaker: reply.speaker, content: reply.text })),
   ];
+}
+
+/** 古树的总结拼成一段留档的话：我听到的、森林的声音、一个念头、一小步、一个问题 */
+export function summaryText(summary: TreeSummary): string {
+  const voices = summary.voices.map((voice) => ANIMALS[voice.animal].name + "：" + voice.point).join("；");
+  return [summary.heard, "森林里的声音——" + voices, summary.thought, summary.nextStep, summary.question].join(
+    "\n",
+  );
+}
+
+/** 一次倾诉进行到哪儿了（够了，能整理成留档的形状就行） */
+export interface TalkSnapshot {
+  startedAt: number;
+  text: string;
+  speeches: readonly { animal: AnimalId; text: string }[];
+  summary: TreeSummary | null;
+  replies: readonly { speaker: CharacterId; text: string }[];
+  marked: readonly AnimalId[];
+}
+
+/** 把一次倾诉整理成要写进年轮的形状：原话、七只的发言、古树的总结、追问的回答 */
+export function toTalkLog(snapshot: TalkSnapshot): TalkLog {
+  return {
+    startedAt: snapshot.startedAt,
+    text: snapshot.text,
+    speeches: snapshot.speeches.map((speech) => ({ speaker: speech.animal, text: speech.text })),
+    summary: snapshot.summary === null ? null : summaryText(snapshot.summary),
+    replies: snapshot.replies.map((reply) => ({ speaker: reply.speaker, text: reply.text })),
+    marked: [...snapshot.marked],
+  };
 }
