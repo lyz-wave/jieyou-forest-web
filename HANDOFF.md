@@ -21,7 +21,7 @@
    npm run typecheck && npm run lint && npm test
    ```
 3. **不要提交代码**，除非用户明确要求。目前整个项目只有一个 `create-next-app` 初始提交，其余全部是未提交的工作区改动。
-4. 第 1–3 阶段都已完成（记录见第 9 节）：第 1 阶段 63/63（9.1–9.7）、第二阶段引导式选伙伴（9.8）、倾诉与圆桌（9.9）与一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，9.10）、**第三阶段沉淀与年轮**（`openspec/changes/stage3-rings/`，9.11：Dexie 第 2 版、年轮三级浏览、成长卡片、先放一放与古树追问、`?dev=1` 演示数据）。**接下来是第四阶段**（记忆唤醒、数据导出导入删除、音效与动画打磨，架构建议见第 11.3、11.4 节），动手前先走 OpenSpec 并和用户确认范围。语音输入按用户 2026-10-08 的意思先放着。
+4. 第 1–3 阶段都已完成（记录见第 9 节）：第 1 阶段 63/63（9.1–9.7）、第二阶段引导式选伙伴（9.8）、倾诉与圆桌（9.9）与一轮**按文档逐节校对**（`openspec/changes/doc-alignment/`，9.10）、**第三阶段沉淀与年轮**（`openspec/changes/stage3-rings/`，9.11：Dexie 第 2 版、年轮三级浏览、成长卡片、先放一放与古树追问、`?dev=1` 演示数据；年轮在 10-08 做成了一盘**纸雕**（9.12），10-09 按用户的要求改成**剪纸年轮**，见 9.13）。**接下来是第四阶段**（记忆唤醒、数据导出导入删除、音效与动画打磨，架构建议见第 11.3、11.4 节），动手前先走 OpenSpec 并和用户确认范围。语音输入按用户 2026-10-08 的意思先放着。
 5. 用户的工作习惯和规则见第 13 节。主要是：OpenSpec 流程、TDD、tasks.md 做完一项立刻打勾、手术式修改、中文沟通。
 
 ---
@@ -65,7 +65,7 @@
 |---|---|---|
 | 1 | 风格样板 → 森林场景、7 只动物、森林生活、入林、角色卡、7 个小游戏（AI 用 mock） | **✅ 已完成，63/63 项已勾选**（2026-10-06 全量检查通过，见 9.6） |
 | 2 | 倾诉、圆桌发言、古树总结、追问（接 Claude API） | **✅ 已完成**（引导式选伙伴见 9.8；倾诉与圆桌见 9.9；按文档校对见 9.10） |
-| 3 | 沉淀、年轮三级浏览、成长卡片 | **✅ 已完成**（`openspec/changes/stage3-rings/`，见 9.11；E2E 与截图齐全） |
+| 3 | 沉淀、年轮三级浏览、成长卡片 | **✅ 已完成**（`openspec/changes/stage3-rings/`，见 9.11；年轮的纸雕见 9.12；E2E 与截图齐全） |
 | 4 | 记忆唤醒、数据导入导出删除、音效、动画打磨 | 未开始（**风险检测与求助卡已经按文档第八节做进第二阶段**，见 9.10；语音输入按用户意思后置） |
 
 ### 2.2 第一阶段各组
@@ -96,6 +96,8 @@
 - **第 1 阶段收尾（11.2–11.4）完成后（2026-10-06）**：新增 `e2e/quality.spec.ts`（3 个用例 × 两个视口）；`npm run typecheck`、`npm run lint` 零报错；`npx vitest run` **52 个文件 371 个测试全部通过**；生产 E2E（`playwright.prod.config.ts`）**38 个全部通过（2.5 分钟）**；开发服务器 E2E（`playwright.existing-dev.config.ts`，复用 3200，dev-mobile/dev-desktop）**30 通过 2 跳过**，`dev-iphone` 的 WebKit 命中测试单独跑 **1 通过**；`npm run build` 成功；`docs/onboarding`、`docs/forest`、`docs/games` 的截图全部重新生成，已自检手机与桌面两个视口的森林主场景；`README.md` 改写成验收版
 - **第二阶段 + 按文档校对完成后（2026-10-08）**：`npx vitest run` **74 个文件 526 个用例全部通过**（上轮 71/504）；`npm run typecheck`、`npm run lint` 零报错；生产 E2E（`playwright.prod.config.ts`）**50 个全部通过**（含新增的危机守护页两条 × 两个视口，见 9.10）；截图重新生成在 `docs/talk/`（新增 `*-talk-guard.png`）
 - **第三阶段（沉淀与年轮）完成后（2026-10-08）**：`npx vitest run` **85 个文件 605 个用例全部通过**（上轮 74/526）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E（`playwright.prod.config.ts`，mobile + desktop）**54 个全部通过**（新增 `e2e/rings.spec.ts` 两条 × 两个视口，`e2e/talk.spec.ts` 的收尾改走「再次打分 → 成长卡片」）；截图 16 张在 `docs/rings/`
+- **年轮改成一盘纸雕之后（2026-10-08）**：`npx vitest run` **86 个文件 617 个用例全部通过**（上轮 85/605）；`npx tsc --noEmit`、`npx eslint .` 零报错；`e2e/rings.spec.ts`（mobile + desktop）通过，`docs/rings/` 的截图重新生成（内圈抬起、纸下见影，见 9.12）
+- **年轮改成剪纸年轮之后（2026-10-09）**：`npx vitest run` **87 个文件 641 个用例全部通过**（上轮 86/617）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E **54 passed (4.1m)**（含 `e2e/rings.spec.ts` 两条 × 两个视口）；`docs/rings/` 16 张截图重生成。
 
 ---
 
@@ -793,6 +795,70 @@ interface PuppetDef {
 6. 年轮最初只有圈没有字：年层看不出是哪一年、悬停也没有反应。补法是 `RingRow` 上画 `<text data-testid="ring-label">`（年圈传年份），并让每圈在悬停／聚焦时把名字报给下面那行 `ring-caption`（`focus ?? pathName ?? "点一圈，看看那一年"`）；面包屑按钮要 `whitespace-nowrap`，否则「全部」会折成两行。两处都有单测（`components/rings/RingBrowser.test.tsx` 的「年轮上的名字」）。
 7. 手势用例的语义容易写反：点进某一年之后本来就在月层，所以捏合之后要断言 `queryAllByTestId("ring-month")` 为空（回到年层），不是还有。
 
+### 9.12 年轮改成一盘纸雕（2026-10-08 完成）
+
+用户在 2026-10-08 提了第二件事：「年轮纸雕感要 2.5D」。产品文档 §3.5 的原文要求是「每一圈是一张环形纸片，从外到内一层层叠高（等高线纸雕），最内圈最高；点击某一圈时这圈纸片抬起、发光，再展开成下一级年轮」。这一节记的是怎么做的、验到了什么、以及三个坑。
+
+#### 新增：`lib/rings/stack.ts`（纯函数，配 6 个用例）
+
+- `LAYER_STEP = 7`、`LAYER_THICKNESS = 3`、`RISE_MS = 340`、`RISE_EXTRA = 10`。
+- `layerLifts(total, step)`：从外到内的层高表，最外一圈是 `0`、最内最负（**把 `-0` 归一成 `0`**，因为 `toEqual` 区分 `0` 与 `-0`，这是个真踩过的坑）。
+- `annulusPath(radius, width, cx, cy)`：两个圆子路径 + `fillRule="evenodd"` 挖空，`inner <= 0.5` 时就只剩一张圆纸片。
+- `shade(color, amount)` / `lighten(color, amount)`（只认 6 位 `#rrggbb`，认不出原样返回）、`sparkAt(radius, cx, cy)`（正上方那一点）。
+
+#### 改：`components/rings/RingBrowser.tsx`（465 → 约 530 行）
+
+- `RingRow` / `DayBead` 两个组件删掉，换成 `PaperRing`：一组是 `<g data-ring-layer data-testid data-lift data-raised data-highlighted data-focused style={{transform, transition}}>`，里面按顺序画四张——`[data-ring-shadow]` 纸下的浅影（比纸宽 3px、下移 6px）、`[data-ring-side]` 裁口侧面（压暗 24%、下移 3px）、`[data-ring-face]` 纸面、最后 `[data-ring-hit]` 加宽的透明热区（`pointerEvents="fill"`、`role="button"`、`tabIndex`、`aria-label`）。抬手时多一张 `ring-rise-glow`，主题筛中时多一张 `data-ring-glow`，有记录的月份多一颗 `month-spark`，年份/日期写在纸边下面。
+- 整盘往下挪半个层高，最内圈抬起来不会顶出画框：`lifts = day !== null ? dayLifts : month !== null ? monthLifts : yearLifts`、`shiftY = -Math.min(0, ...lifts) / 2`；圆心那颗「胚」是 `ring-core`（也是两张圆纸片）。
+- 几何跟着数据走：年层 `YEAR_BASE = 32`、`YEAR_STEP = 26`、`YEAR_MAX = 104`，年多了就把圈压窄（`yearStep = min(26, (104 - 32) / (年数 - 1))`）、抬高按 `max(6, min(14, round(36 / (年数 - 1))))`；月层 `MONTH_BASE = 14`、`MONTH_STEP = 7`，没记录的月份不是纸环而是 1.5px 的浅色细线（仍然 11 条），跟着层高一起垫起来，于是月层看上去是一圈圈的等高线；日层 `DAY_BASE = 18`、`DAY_MAX = 100`，步长与宽度都按天数自适应，**只有一天的时候把这一圈画粗、往外挪（半径 34、宽 14）**，免得缩成一颗小点。
+- 点击两拍：`RingBrowser({ onClose, riseMs = RISE_MS })` 里 `pick(id, run)` 先把那一圈抬起来发光（`rising`），`setTimeout` 到点再展开成下一级；`riseMs <= 0` 或 `prefers-reduced-motion` 时直接进。点开某一天之后，**那一圈仍留在盘上并亮着**（下面是那天的成长卡片），不会剩一张空盘。
+- 键盘焦点不再画浏览器那个蓝方框：热区 `outline-none`，落到哪一圈就用那一圈自己的纸色发光（`data-focused`），同时下面那行 `ring-caption` 报到名字。
+
+#### 验证（2026-10-08）
+
+- `npx vitest run`：**86 个文件 617 个用例全过**（年轮组件 16 个：三级浏览 5、手势 3、名字 2、纸雕 6）。
+- `npx tsc --noEmit`、`npx eslint .` 零报错。
+- 生产 E2E `e2e/rings.spec.ts`（两个视口 4 个用例）通过，`docs/rings/` 的 16 张截图重新生成；已看图确认：年层 2025 叠在 2026 上（内圈抬起、纸下见影）、月层细线成锥、日层是一圈淡紫的纸环并写着「8日」。
+
+#### 三个坑
+
+1. SVG 元素的 `className` 是 `SVGAnimatedString`，测试里要写 `getAttribute("class")`，直接 `expect(el.className).toContain(...)` 会得到 `expected [] to include ...`。
+2. 变量声明顺序：`dayWidth` 一开始写在 `dayStep` 前面，只有一天的数据永远走不到那个分支所以测试全绿，直到补了「一个月里有几天就是几圈」这个用例才把它逼出来。**新增展示层的计算就顺手补一个多元素用例**。
+3. 年轮的热区是里面的 `<path data-ring-hit>`，`aria-label` 挂在它身上而不是 `<g data-testid>` 上；E2E 里原来的 `expect(year).toHaveAttribute("aria-label", ...)` 因此变成 2 failed，改成 `page.locator('[data-testid="ring-year"] [data-ring-hit]')` 才对。
+
+### 9.13 年轮改成剪纸年轮（2026-10-09 完成）
+
+用户看过 9.12 那版之后说：「这也不像年轮啊  我要剪纸图案的2.5D感的年轮」——同心圆加情绪色那版被否，要的是**剪纸图案**的年轮。这一节记的是纸片怎么剪出来的、整盘怎么摆、以及为什么「点不中」。
+
+#### 新增：`lib/rings/paper.ts`（纯函数，配 19 个用例）
+
+- `WOOD = "#d9bf8e"`、`BARK = "#a2794c"`、`WOOD_LIGHT = "#efe0bd"`、`MIN_BAND = 5`、`MIN_EDGE = 1.4`。
+- `wobbledCircle(spec)`：半径沿角度用三条正弦谐波起伏（相位由 `seeded(seed)` 定），默认 48 个点；`petals` / `petal` 让边缘变成花瓣式的花边（树皮用它剪出 13 瓣）。
+- `smoothClosedPath(points)`：Catmull-Rom 转三次贝塞尔，`M` 开头 `Z` 收尾；点少于 3 就走折线。
+- `bandEdges(spec)` 与 `ringPaperPath(spec)`：一条环带的外圈手剪一次、**内圈用 `seed + 9911` 另外剪一次**（所以宽度沿圆周有粗有细，不是等宽的几何圆环）；内圈被外圈挤到只剩 `MIN_EDGE` 时按同一角度径向推回，`innerRadius <= 0.6` 时就只剩一张圆纸片。`cutHoles(spec)` 在环带上均分再抖动地剪几个叶子形小口（环宽 < 4 不剪），靠 `fillRule="evenodd"` 挖空。
+- `grainPath` 一根木纹、`eccentricAt(seed, index, max)` 让越往外的圈偏得越多（真年轮不同心）、`woodTint(color, amount)` 把情绪色往木头色里调。
+- `packedRings(widths, core, max, gap = 4)`：一圈挨一圈地长，放不下就整体收窄、最少 `MIN_BAND`，再挤只留缝——所以「记录多的一年更厚」是真的更厚，但整盘不会长出画框。
+
+#### 改：`components/rings/RingBrowser.tsx`（约 530 → 约 650 行）
+
+- 整盘加了「一截锯下来的木头」：`ring-drop` 落影 → `ring-bark`（`barkPath` 13 瓣花边 + `[data-ring-bark-side]` 厚度 + 木头切面 `[data-testid="ring-wood"]` + 一根木纹）→ `ring-core` 里那块不规则「胚」（`wobble: 0.26`）。
+- 树皮**包住当前这一层**最外的那一圈：`layerOuter` 按年/月/日各自的几何算（月层是 `MONTH_BASE + (圈数 - 1) * MONTH_STEP + 最大圈宽 / 2`，日层是 `dayBase + dayStep * (天数 - 1) + dayWidth / 2`），`barkRadius = max(outerYearRadius, layerOuter) + 18`。第一版只按年层算，进到月层时那圈 10 月的纸环就跑到树皮外面去了。
+- `PaperRing` 的每张纸片是四层：`[data-ring-shadow]`（比纸大 3、往下垫 `LAYER_THICKNESS * 2`、`#3b3328` 15%）、`[data-ring-side]`（压暗的裁口，垫 3）、`[data-ring-face]`（纸面 + 一圈更暗的边）、`[data-ring-grain]`，最后才是热区 `[data-ring-hit]`（用**没剪口的同形环带**，剪出来的小口不该让这一圈点不着）。
+- **除了热区，所有纸片都 `pointerEvents="none"`**（影子、裁口、纸面、木纹、光点、标签字、空月份的细线，连树皮和木纹也一样）——原因见下面的坑 1。
+- 空着的月份是一根手剪的细线（`ringPaperPath({ width: 1.5 })`），有记录的月份是纸 + 纸边一颗光点（`month-spark`）。
+
+#### 验证（2026-10-09）
+
+- `npx vitest run`：**87 个文件 641 个用例全过**（`lib/rings/paper.test.ts` 19 个：手剪起伏、包边、宽度不匀、镂口、偏心、层高打包；年轮组件 19 个，其中「只有热区是可点的」2 个）。
+- `npx tsc --noEmit`、`npx eslint .` 零报错。
+- 生产 E2E（`PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test --config=playwright.prod.config.ts`）：**54 passed (4.1m)**，含 `e2e/rings.spec.ts` 的两条（年→月→日三级、空状态 + 演示数据）。`docs/rings/` 16 张截图重新生成，已看图确认：年层是一截带花边树皮的木头 + 一圈带两个小镂口的手剪年轮（年份写在木头上）、日层是一圈淡紫纸环写着「9日」。
+
+#### 四个坑
+
+1. **装饰性的纸片会把点击吃掉**。影子、裁口、纸面画在同一组里、几何又几乎重合，`document.elementsFromPoint` 查出来最上面那个往往是一张**没有 `data-ring-hit` 的 path**；鼠标点下去事件冒到 `<g>` 上，什么都没发生。E2E 的「月→日」这一步就是卡在这里：年→月能点通（那一次的点恰好落在热区上）、月→日点不通。修法是给所有纸片 `pointerEvents="none"`，只有热区那条路径接点击；`e2e/rings.spec.ts` 的 `clickRing` 也从「量盒子点最上面那一点」改成「从盒子顶部往下扫，找到 `elementsFromPoint` 最上面正好是这一圈热区的那一点再点」。
+2. **量到的是折起动画中间那一帧**。纸卡是 rotateX −88 → 0 折起来的，动画没落定就量 `boundingBox()`，拿到的是被投影压扁的盒子（实测 150×41，落定后 232×59），按那个坐标点不到东西。`e2e/rings.spec.ts` 里加了一个 `settleCards(page)`：等 `.paper-card` 的 `transform` 变成 `none` 或单位矩阵再量。
+3. **`locator.click({ position })` 会先做稳定性检查**，在折起的卡片上会一直报 `element is not stable` 直到超时；按坐标点用 `page.mouse.click(x, y)` 绕开。
+4. SVG 元素的 `className` 是 `SVGAnimatedString`（9.12 也踩过，这次是 `getAttribute("class")`）；另外 `<g>` 上有 `onClick` 时，`userEvent.click(getByRole("button", { name }))` 点的是热区路径，别去点组。
 ## 10. 第一阶段实现指南（已完成，留作参考）
 
 第 1 阶段的 63 项已于 2026-10-06 全部完成并通过全量检查（记录见第 9 节）。本节保留当时的做法与验收标准，供第二阶段参考。**以 `tasks.md` 和 `specs/` 为准**，本节只是帮助理解。每一项都先写失败的测试，再写实现。
@@ -1030,7 +1096,7 @@ interface Memory {
 然后：
 - 运行 git status、openspec list、npm run typecheck、npm run lint、npm test，确认当前状态与 HANDOFF.md 第 2 节是否一致，有差异先告诉我
 - 第 1 阶段 63 项已全部完成并通过全量检查（记录见第 9 节）；先按下一条命令自己验证一遍，和文档不一致就告诉我
-- 第一、二、三阶段都已完成（见 9.8–9.11），并按产品文档 `解忧森林-prompt.md` 逐节校对过；下一步是第四阶段（记忆唤醒、数据导出导入删除、音效与打磨，设计草稿在第 11.3、11.4 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
+- 第一、二、三阶段都已完成（见 9.8–9.12），并按产品文档 `解忧森林-prompt.md` 逐节校对过；下一步是第四阶段（记忆唤醒、数据导出导入删除、音效与打磨，设计草稿在第 11.3、11.4 节）：先和用户确认范围，走 OpenSpec 流程拿到批准再动手
 
 要求：
 - 用中文沟通

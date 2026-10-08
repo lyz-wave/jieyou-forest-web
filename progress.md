@@ -120,3 +120,23 @@
 - 改动规模：已跟踪文件 **64 个、+778 / −119**；新增文本文件 29 个共 **2725 行**（docs/rings 的 16 张截图另计）。
 - 验证：单测 **85 文件 605 用例**通过；typecheck、lint 零报错；生产 E2E **54 个**全部通过（年轮 spec 4 passed）；截图 docs/rings 16 张，已自查成长卡片与年层（年份字、提示行、「全部」不再折行）。
 - 未提交：远端 origin/main 仍是 8bfca6f，第三阶段全部改动停在工作区。
+
+## 2026-10-08 · 年轮改成 2.5D 纸雕
+
+用户 m05131 要求先提交第三阶段、再把年轮做成 2.5D。提交先做完（五个提交 `045102a` → `6607bff` 已推 origin/main），随后按产品文档 §3.5 把年轮页从「一组同心圆」改成一盘纸雕：每一圈是一张环形纸片，从外到内一层层垫高（等高线纸雕），纸片有厚度与投影，点一圈先抬起发光再展开成下一级。
+
+- 调用数：turn 61 **153 次**——run_code 55｜bash 33｜write 17｜read 15｜job_output 10｜edit 10｜read_image 7｜grep 4｜create_goal 1｜compress 1；planning（只读规划）20 次 = **13%**。
+- 返工 **4 次**：① `dayWidth` 写在 `dayStep` 前面（TDZ），单日数据走不到那个分支所以测试全绿，补了「一个月两天」的用例才逼出来；② 键盘焦点用例读 SVG 的 `className`（是 SVGAnimatedString）拿不到字符串，改 `getAttribute("class")`；③ `layerLifts` 返回的 `-0` 与 `0` 在 `toEqual` 里不相等，把 -0 归一成 0；④ 在 run_code 里用 `String.raw` 装含反引号的 python 源码同样会被反引号截断（`Expected ':', got 'ident'`），改成 tools.write + 单引号字符串数组拼行。
+- 改动规模：已跟踪文件 **57 个、+386 / −180**（其中 47 张是重跑的截图）；未跟踪文本文件 2 个共 123 行；新增 `lib/rings/stack.ts`（层高、环带路径、明暗、光点，配 6 例测试）。
+- 验证：单测 **86 文件 617 用例**通过；typecheck、lint 零报错；生产 E2E **54 个**全部通过（3.9 分钟）；`docs/rings` 16 张截图全部重生成，并看图自查（年层 2025 叠在 2026 上、月层细线成锥、日层淡紫纸环 + 「8日」）。
+- 未提交：这批改动（`lib/rings/stack.ts`、RingBrowser 重写、README/HANDOFF、截图）仍停在工作区，远端 origin/main 是 `6607bff`。
+
+## 2026-10-09 · 年轮改成剪纸年轮
+
+用户看过上一版的同心圆年轮之后说：「这也不像年轮啊  我要剪纸图案的2.5D感的年轮」。这一轮把年轮从「同心圆 + 情绪色」改成一截**剪纸锯下来的木头**：外面是剪出 13 瓣花边的树皮，里面是浅色木头切面与一根木纹、一块不规则的「胚」；每一圈年轮都是一张手剪的环形纸片（宽窄沿圆周不匀、纸边剪着小镂口），从外到内一层层垫高，纸下留着裁口的厚度和影子；空着的月份是一根手剪的细线。
+
+- 调用数：turn 62 **234 次**（run_code 96｜bash 42｜write 33｜read 28｜job_output 21｜read_image 8｜grep 4｜compress 2｜edit 1）；planning（只读规划）34 次 = **15%**｜写盘 34 次 = 15%｜验证类 bash 36 次 = 15%。
+- 返工 **6 次**：① 装饰性的纸片把点击吃掉——月→日这一步点不通，用 `document.elementsFromPoint` 探针查出最上面那张 path 没有 `data-ring-hit`，给所有纸片（影子、裁口、纸面、木纹、光点、标签字、空月份细线、树皮）加 `pointerEvents="none"`，只有热区接点击，`clickRing` 也改成从盒子顶部往下扫到「最上面正好是这一圈热区」那一点；② E2E 里 `locator.click({ position })` 撞上稳定性检查（`element is not stable`），改成 `page.mouse.click(x, y)`；③ 纸卡折起动画没落定就量盒子（量到 150×41，落定后 232×59），加 `settleCards(page)` 等 `.paper-card` 的 transform 落定；④ 树皮只按年层算半径，进到月层后那圈纸环跑到树皮外面——改成按当前这一层的几何算 `layerOuter`；⑤ `BandSpec` 少了 `petals` / `petal`，`npx tsc --noEmit` 报 TS2353；⑥ run_code 里手拼含引号/反引号的 TS 串又失败两次（`Expected ']'` / `Expected ':', got 'ident'`），一律改成先写 `/tmp/*.py` 或 heredoc 再执行。
+- 改动规模：已跟踪文件 **57 个、+634 / −184**（含 docs/rings 16 张截图重生成）；新增未跟踪文件 2 个：`lib/rings/paper.ts`、`lib/rings/paper.test.ts`（手剪几何与打包层高，19 例测试）。
+- 验证：`npx vitest run` **87 个文件 641 个用例全过**（上轮 86/617）；`npx tsc --noEmit`、`npx eslint .` 零报错；生产 E2E `PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test --config=playwright.prod.config.ts` **54 passed (4.1m)**（含 `e2e/rings.spec.ts` 两条 × 两个视口）；看图自检 `docs/rings/` 的年层、月层、日层（mobile 与 desktop）。
+- 未提交：这批改动（`lib/rings/paper.ts`、`RingBrowser.tsx` 的剪纸重做、README/HANDOFF、截图）仍停在工作区，远端 origin/main 是 `6607bff`。
