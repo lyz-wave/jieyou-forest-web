@@ -3,7 +3,7 @@ import { useForestStore } from "./forest";
 import type { Profile, ProfileStore } from "../db/profile";
 import { __setProfileStoreForTest, useAppStore } from "./app";
 
-const sample: Profile = { nickname: "小满", companion: "bear", onboardedAt: 1 };
+const sample: Profile = { nickname: "小满", companion: "bear", onboardedAt: 1, selfPicks: [] };
 
 function fakeStore(initial: Profile | null, persistent = true): ProfileStore & { saved: Profile[] } {
   let value = initial;

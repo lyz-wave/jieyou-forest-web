@@ -2,7 +2,12 @@ import Dexie from "dexie";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createProfileStore, type Profile } from "./profile";
 
-const sample: Profile = { nickname: "小满", companion: "fox", onboardedAt: 1_790_000_000_000 };
+const sample: Profile = {
+  nickname: "小满",
+  companion: "fox",
+  onboardedAt: 1_790_000_000_000,
+  selfPicks: [{ at: 1_790_000_000_100, want: ["understood"], animalId: "woodpecker", source: "guided" }],
+};
 
 describe("createProfileStore（IndexedDB 可用）", () => {
   let dbName: string;
@@ -22,6 +27,18 @@ describe("createProfileStore（IndexedDB 可用）", () => {
     expect(await a.load()).toEqual(sample);
     const b = await createProfileStore(dbName);
     expect(await b.load()).toEqual(sample);
+  });
+
+  it("老资料（没有 selfPicks 字段）读出来是空数组", async () => {
+    const legacy = new Dexie(dbName);
+    legacy.version(1).stores({ profile: "id" });
+    const table = legacy.table("profile") as unknown as { put(row: Record<string, unknown>): Promise<unknown> };
+    await table.put({ id: "me", nickname: "小满", companion: "fox", onboardedAt: 1 });
+    legacy.close();
+    const store = await createProfileStore(dbName);
+    const loaded = await store.load();
+    expect(loaded?.nickname).toBe("小满");
+    expect(loaded?.selfPicks).toEqual([]);
   });
 
   it("再次保存会覆盖（只有一份资料）", async () => {

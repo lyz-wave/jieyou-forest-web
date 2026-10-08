@@ -4,11 +4,14 @@
  */
 import Dexie, { type EntityTable } from "dexie";
 import type { AnimalId } from "../animals";
+import type { SelfPick } from "../onboarding/selfpick";
 
 export interface Profile {
   nickname: string;
   companion: AnimalId;
   onboardedAt: number;
+  /** 每次入林怎么选的伙伴：时间、想被怎么陪、最后选了谁、自己挑还是问出来的。老资料没有这个字段时读出来是空数组 */
+  selfPicks: SelfPick[];
 }
 
 interface ProfileRow extends Profile {
@@ -47,6 +50,7 @@ const toProfile = (row: ProfileRow): Profile => ({
   nickname: row.nickname,
   companion: row.companion,
   onboardedAt: row.onboardedAt,
+  selfPicks: row.selfPicks ?? [],
 });
 
 export async function createProfileStore(dbName = "jieyou"): Promise<ProfileStore> {

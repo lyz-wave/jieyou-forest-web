@@ -57,6 +57,17 @@ describe("Onboarding", () => {
     expect((await store.load())?.onboardedAt).toBeGreaterThan(0);
   });
 
+  it("说明卡写清倾诉的话会发给谁、存在哪儿", async () => {
+    const user = userEvent.setup();
+    render(<Onboarding />);
+    await reachNickname();
+    await user.type(screen.getByRole("textbox", { name: "你的昵称" }), "小满");
+    await user.click(screen.getByRole("button", { name: "继续" }));
+    expect(screen.getByText(/只存在你自己的设备上/)).toBeInTheDocument();
+    expect(screen.getByText(/会发给本站的服务端/)).toBeInTheDocument();
+    expect(screen.queryByText(/不向外部服务发送内容/)).toBeNull();
+  });
+
   it("刷新未完成的引导会回到第一步", async () => {
     const view = render(<Onboarding />);
     await reachNickname();
@@ -73,5 +84,55 @@ describe("Onboarding", () => {
     expect(screen.getByRole("status")).toHaveTextContent("森林这次记不住你，关掉页面后需要重新认识哦");
     await reachNickname();
     expect(screen.getByRole("textbox", { name: "你的昵称" })).toBeInTheDocument();
+  });
+
+  it("走「帮我看看」：答完三句话拿到推荐，接受后按 guided 记下当时的说法", async () => {
+    const store = await createProfileStore("onboarding-guided");
+    __setProfileStoreForTest(store);
+    const user = userEvent.setup();
+    render(<Onboarding />);
+    await reachNickname();
+    await user.type(screen.getByRole("textbox", { name: "你的昵称" }), "小满");
+    await user.click(screen.getByRole("button", { name: "继续" }));
+    await user.click(screen.getByRole("button", { name: "我知道了" }));
+
+    await user.click(screen.getByRole("button", { name: "不知道找谁？帮我看看" }));
+    expect(screen.getByText("第 1 / 3 问")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下一问" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "看清那件事是真的，还是我想的" }));
+    expect(screen.getByRole("button", { name: "下一问" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "下一问" }));
+    await user.click(screen.getByRole("button", { name: "说不好，先看看" }));
+    await user.click(screen.getByRole("button", { name: "下一问" }));
+    await user.click(screen.getByRole("button", { name: "不用，先看眼前" }));
+    await user.click(screen.getByRole("button", { name: "看看推荐" }));
+
+    expect(screen.getByText(/墨墨的办法是/)).toBeInTheDocument();
+    expect(screen.getByText(/不代表你是什么样的人/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "就是它" }));
+    expect(screen.getByRole("radio", { name: /墨墨/ })).toBeChecked();
+    await user.click(screen.getByRole("button", { name: "一起入林" }));
+    await waitFor(() => expect(useAppStore.getState().phase).toBe("forest"));
+    const saved = await store.load();
+    expect(saved?.companion).toBe("owl");
+    expect(saved?.selfPicks).toEqual([{ at: expect.any(Number), want: ["see-clearly"], animalId: "owl", source: "guided" }]);
+  });
+
+  it("点了「还是想自己挑」就回到卡片，最后按自己挑记录", async () => {
+    const store = await createProfileStore("onboarding-self-pick");
+    __setProfileStoreForTest(store);
+    const user = userEvent.setup();
+    render(<Onboarding />);
+    await reachNickname();
+    await user.type(screen.getByRole("textbox", { name: "你的昵称" }), "小满");
+    await user.click(screen.getByRole("button", { name: "继续" }));
+    await user.click(screen.getByRole("button", { name: "我知道了" }));
+    await user.click(screen.getByRole("button", { name: "不知道找谁？帮我看看" }));
+    await user.click(screen.getByRole("button", { name: "还是想自己挑" }));
+    expect(screen.getAllByRole("radio")).toHaveLength(7);
+    await user.click(screen.getByRole("radio", { name: /团团/ }));
+    await user.click(screen.getByRole("button", { name: "一起入林" }));
+    await waitFor(() => expect(useAppStore.getState().phase).toBe("forest"));
+    expect((await store.load())?.selfPicks).toEqual([{ at: expect.any(Number), want: [], animalId: "bear", source: "self" }]);
   });
 });
